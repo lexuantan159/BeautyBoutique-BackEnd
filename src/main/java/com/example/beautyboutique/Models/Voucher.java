@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Entity
@@ -21,6 +22,9 @@ public class Voucher {
     @Column(name = "title", columnDefinition = "TEXT")
     private String title;
 
+    @Column(name = "discount", columnDefinition = "double")
+    private Float discount;
+
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
@@ -30,12 +34,18 @@ public class Voucher {
     @Column(name = "numUsedVoucher", columnDefinition = "int")
     private Integer numUsedVoucher;
 
-    @Column(name = "startDate", columnDefinition = "DATETIME", nullable = false, updatable = false)
-    @CreationTimestamp
+    @Column(name = "minimumOrder", columnDefinition = "DECIMAL(10, 2)")
+    private BigDecimal minimumOrder;
+
+    @Column(name = "maximDiscount", columnDefinition = "DECIMAL(10, 2)")
+    private BigDecimal maximumDiscount;
+
+    @Column(name = "startDate", columnDefinition = "DATE", nullable = false)
+    @Temporal(TemporalType.DATE)
     private Date startDate;
 
-    @Column(name = "endDate", columnDefinition = "DATETIME", nullable = false, updatable = false)
-    @CreationTimestamp
+    @Column(name = "endDate", columnDefinition = "DATE", nullable = false)
+    @Temporal(TemporalType.DATE)
     private Date endDate;
 
 }

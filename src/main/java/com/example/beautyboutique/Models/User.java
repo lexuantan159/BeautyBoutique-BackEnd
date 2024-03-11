@@ -32,10 +32,10 @@ public class User {
     private Integer dateOfBirth;
 
     @Column(name = "imageId", columnDefinition = "varchar(255)")
-    private Integer imageId;
+    private String imageId;
 
-    @Column(name = "imageURL", columnDefinition = "varchar(255)")
-    private Integer imageURL;
+    @Column(name = "imageURL", columnDefinition = "TEXT")
+    private String imageURL;
 
     @Column(name = "facebookAccountId", columnDefinition = "int")
     private Integer facebookAccountId;

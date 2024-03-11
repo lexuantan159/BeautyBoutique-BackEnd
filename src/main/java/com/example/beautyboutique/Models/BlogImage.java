@@ -1,5 +1,6 @@
 package com.example.beautyboutique.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BlogImage {
     @Id
-    @Column(name = "imageId", columnDefinition = "varchar(30)", nullable = false)
+    @Column(name = "imageId", columnDefinition = "varchar(255)", nullable = false)
     private String id;
 
     @Column(name = "imageUrl", columnDefinition = "varchar(255)")
@@ -19,5 +20,6 @@ public class BlogImage {
 
     @ManyToOne
     @JoinColumn(name = "blogId", columnDefinition = "int")
+    @JsonIgnore
     private BlogPost blogPost;
 }

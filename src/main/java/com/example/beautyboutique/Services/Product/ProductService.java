@@ -22,5 +22,7 @@ public interface ProductService {
 //   Product get(Integer id);
 
    List<Product> findProductBycCategoryId(int categoryId);
+
+ ProductImage createProductImage(ProductImage image);
 }
 

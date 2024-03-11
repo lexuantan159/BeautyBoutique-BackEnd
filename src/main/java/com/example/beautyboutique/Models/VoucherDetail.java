@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 @Entity
 @Data
 @AllArgsConstructor
@@ -17,10 +18,10 @@ public class VoucherDetail {
 
     @ManyToOne
     @JoinColumn(name = "userId")
-    @JsonIgnore
     private User user;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "voucherId")
     private Voucher voucher;
 }

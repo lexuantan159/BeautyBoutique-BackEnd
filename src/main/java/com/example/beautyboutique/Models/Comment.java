@@ -1,5 +1,6 @@
 package com.example.beautyboutique.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,6 +28,7 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "blogId", columnDefinition = "int")
+    @JsonIgnore
     private BlogPost blogPost;
 
     @Column(name = "createdAt", columnDefinition = "DATETIME", nullable = false, updatable = false)

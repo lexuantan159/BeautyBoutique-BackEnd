@@ -1,6 +1,7 @@
 package com.example.beautyboutique.Models;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Data
@@ -32,11 +34,13 @@ public class BlogPost {
     @Column(name = "likeCount", columnDefinition = "int")
     private Integer likeCount;
 
-    @Column(name = "startDate", columnDefinition = "DATETIME", nullable = false, updatable = false)
-    @CreationTimestamp
-    private Date startDate;
+    @OneToMany(mappedBy = "blogPost", fetch = FetchType.EAGER)
+    private List<BlogImage> images;
+    @OneToMany(mappedBy = "blogPost", fetch = FetchType.EAGER)
+    private List<Comment> comments;
 
-    @Column(name = "endDate", columnDefinition = "DATETIME", nullable = false, updatable = false)
+    @Column(name = "createDate", columnDefinition = "DATETIME", nullable = false, updatable = false)
     @CreationTimestamp
-    private Date endDate;
+    private Date createDate;
+
 }
