@@ -26,6 +26,8 @@ public class SecurityConfig {
                                 .requestMatchers("/api/cart/**").permitAll()
                                 .requestMatchers("/api/voucher/**").permitAll()
                                 .requestMatchers("/api/order/**").permitAll()
+                                .requestMatchers("/api/product/**").permitAll()
+                                .requestMatchers("/api/category/**").permitAll()
                                 .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
