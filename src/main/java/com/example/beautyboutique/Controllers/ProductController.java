@@ -9,6 +9,7 @@ import com.example.beautyboutique.Services.Category.CategoryService;
 import com.example.beautyboutique.Services.Product.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -45,7 +46,12 @@ public class ProductController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-    @PostMapping("/create")
+    @PostMapping(value = "/create-product", consumes = {
+            MediaType.APPLICATION_JSON_VALUE,
+            MediaType.MULTIPART_FORM_DATA_VALUE
+    }, produces =
+            MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<ResponseMessage> createProduct(@RequestBody Product product) {
         System.out.println("Create new product");
         Product productCreat = productService.saveafftercheck(product);
