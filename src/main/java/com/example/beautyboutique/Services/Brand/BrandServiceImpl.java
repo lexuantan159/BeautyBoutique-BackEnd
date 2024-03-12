@@ -28,10 +28,10 @@ public class BrandServiceImpl  implements   BrandService{
         return brandRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Brand with id " + id + " null"));
     }
 
-//    @Override
-//    public List<Brand> findByName(String brandName) {
-//        return brandRepository.findBrandByNameContaining(brandName);
-//    }
+    @Override
+    public List<Brand> findByName(String brandName) {
+        return brandRepository.findBrandByBrandNameContaining(brandName);
+    }
 
     @Override
     public Brand saveafftercheck(Brand brand) {

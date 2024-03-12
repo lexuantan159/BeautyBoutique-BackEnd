@@ -1,25 +1,15 @@
-package com.example.beautyboutique.DTOs.Requests.Product;
+package com.example.beautyboutique.DTOs.Responses.ProductImageDTO;
 
-<<<<<<< HEAD
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-=======
-import lombok.*;
->>>>>>> 007f10876fe2225d402cdf711daebec16fa72bc1
 
 import java.math.BigDecimal;
 
 @NoArgsConstructor
 @AllArgsConstructor
-<<<<<<< HEAD
-@Getter
-@Setter
-=======
 @Data
->>>>>>> 007f10876fe2225d402cdf711daebec16fa72bc1
-public class ProductRequest {
+public class ProductDTO {
     private Integer brandId;
     private Integer categoryId;
     private String productName;

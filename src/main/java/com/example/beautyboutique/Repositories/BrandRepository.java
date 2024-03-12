@@ -8,8 +8,9 @@ import java.util.List;
 
 @Repository
 public interface BrandRepository  extends JpaRepository<Brand, Integer> {
-//    List<Brand> findBrandByNameContaining(String partialBrandName);
     public static boolean existsByBrandName(String brandName) {
         return false;
     }
+
+    List<Brand> findBrandByBrandNameContaining(String brandName);
 }

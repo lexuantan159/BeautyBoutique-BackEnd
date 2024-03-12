@@ -13,7 +13,8 @@ public interface BrandService {
 
     Brand findById(Integer id);
 
-//    List<Brand> findByName(String brandName);
+
+    List<Brand> findByName(String brandName);
 
     Brand saveafftercheck(Brand brand);
 

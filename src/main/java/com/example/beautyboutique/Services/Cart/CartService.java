@@ -1,8 +1,7 @@
 package com.example.beautyboutique.Services.Cart;
 
 import com.example.beautyboutique.DTOs.Responses.Cart.PageCart;
-import com.example.beautyboutique.Models.CartItem;
-import org.springframework.data.domain.Page;
+
 
 public interface CartService {
 
