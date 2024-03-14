@@ -3,19 +3,22 @@ package com.example.beautyboutique.Models;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Role {
     @Id
-    @Column(name = "id", columnDefinition = "int", nullable = false)
-    private Integer id;
+    @Column(name = "role_id", columnDefinition = "int", nullable = false)
+    private Integer roleId;
 
-    @Column(name = "roleName", columnDefinition = "nvarchar(50)")
+    @Column(name = "role_name", columnDefinition = "nvarchar(50)")
     private String roleName;
+    public static String ADMIN = "ADMIN";
+    public static String USER = "USER";
+
 }

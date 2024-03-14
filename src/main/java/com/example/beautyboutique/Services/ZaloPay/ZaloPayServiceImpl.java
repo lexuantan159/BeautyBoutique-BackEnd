@@ -103,7 +103,7 @@ public class ZaloPayServiceImpl implements ZaloPayService {
                 return resultMap;
             }
             User user = userOptional.get();
-            String appUser = user.getUserName();
+            String appUser = user.getUsername();
             String appTransId = getCurrentTimeString() + "_" + new Date().getTime();
 
             BigDecimal totalPrice = sumPriceItem(cartItemIds);

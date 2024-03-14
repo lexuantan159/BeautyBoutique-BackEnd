@@ -3,49 +3,86 @@ package com.example.beautyboutique.Models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 @Entity
-@Data
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+@Builder
+public class User extends BaseEntity implements UserDetails {
 
     @Id
-    @Column(name = "id", columnDefinition = "int", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "userName", columnDefinition = "nvarchar(50)", nullable = false)
-    private String userName;
+    @Column(name = "fullname", length = 100)
+    private String fullName;
 
-    @Column(name = "password", columnDefinition = "varchar(255)", nullable = false)
-    private Integer password;
+    @Column(name = "username", length = 10, nullable = false)
+    private String username;
 
-    @Column(name = "address", columnDefinition = "nvarchar(255)")
+    @Column(name = "address", length = 200)
     private String address;
 
-    @Column(name = "isActive", columnDefinition = "int")
-    private Integer isActive;
+    @Column(name = "password", length = 200, nullable = false)
+    private String password;
 
-    @Column(name = "dateOfBirth", columnDefinition = "date")
-    private Integer dateOfBirth;
+    @Column(name = "is_active")
+    private boolean active;
 
-    @Column(name = "imageId", columnDefinition = "varchar(255)")
-    private String imageId;
+    @Column(name = "date_of_birth")
+    private Date dateOfBirth;
 
-    @Column(name = "imageURL", columnDefinition = "TEXT")
-    private String imageURL;
+    @Column(name = "facebook_account_id")
+    private int facebookAccountId;
 
-    @Column(name = "facebookAccountId", columnDefinition = "int")
-    private Integer facebookAccountId;
-
-    @Column(name = "googleAccountId", columnDefinition = "int")
-    private Integer googleAccountId;
+    @Column(name = "google_account_id")
+    private int googleAccountId;
 
     @ManyToOne
-    @JoinColumn(name = "roleId")
-    private Role role;
+    @JoinColumn(name = "role_id")
+    private  com.example.beautyboutique.Models.Role role;
 
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
+        authorityList.add(new SimpleGrantedAuthority("ROLE_"+getRole().getRoleName().toUpperCase()));
+        //authorityList.add(new SimpleGrantedAuthority("ADMIN"));
+        return authorityList;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

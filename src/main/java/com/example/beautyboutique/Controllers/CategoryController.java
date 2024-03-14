@@ -18,7 +18,7 @@ public class CategoryController {
      @Autowired
      private CategoryService categoryService;
 
-     @GetMapping("/get-all") //http://localhost:8080/api/product/get-all
+     @GetMapping("/get-all") //http://localhost:8080/api/category/get-all
      public ResponseEntity<List<Category>> getAllCategory() {
           List<Category> categories = categoryService.findAll();
           if (categories.isEmpty()) {
