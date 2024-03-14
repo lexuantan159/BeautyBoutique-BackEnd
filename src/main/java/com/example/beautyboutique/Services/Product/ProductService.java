@@ -24,11 +24,7 @@ public interface ProductService {
 
     Product get(Integer id, Integer pageNumber, Integer pageSize);
 
-<<<<<<< HEAD
-   List<Product> findProductBycCategoryId(int categoryId);
 
- ProductImage createProductImage(ProductImage image);
-=======
     Product createProduct(ProductRequest request) throws Exception;
 
     List<Product> findProductBycCategoryId(int categoryId);
@@ -37,6 +33,5 @@ public interface ProductService {
     List<Product> findProductByPositionId(int brandId);
 
     Product updateProduct(Integer id, ProductRequest productUpdate);
->>>>>>> 007f10876fe2225d402cdf711daebec16fa72bc1
 }
 

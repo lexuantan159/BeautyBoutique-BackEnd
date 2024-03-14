@@ -19,7 +19,7 @@ public class Product {
     @Column(name = "id", columnDefinition = "int", nullable = false)
     private Integer id;
 
-    @Column(name = "productName", columnDefinition = "nvarchar(50)", nullable = false)
+    @Column(name = "productName", columnDefinition = "nvarchar(500)", nullable = false)
     private String productName;
 
     @Column(name = "actualPrice")

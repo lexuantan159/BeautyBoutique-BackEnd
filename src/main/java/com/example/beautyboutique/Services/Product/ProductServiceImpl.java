@@ -2,18 +2,13 @@ package com.example.beautyboutique.Services.Product;
 
 import com.example.beautyboutique.DTOs.Requests.Product.ProductRequest;
 import com.example.beautyboutique.Exception.ResourceNotFoundException;
-<<<<<<< HEAD
-import com.example.beautyboutique.Models.BlogImage;
-import com.example.beautyboutique.Models.Product;
-import com.example.beautyboutique.Models.ProductImage;
-=======
+
 import com.example.beautyboutique.Models.Brand;
 import com.example.beautyboutique.Models.Category;
 import com.example.beautyboutique.Models.Product;
 import com.example.beautyboutique.Models.ProductImage;
 import com.example.beautyboutique.Repositories.BrandRepository;
 import com.example.beautyboutique.Repositories.CategoryRepository;
->>>>>>> 007f10876fe2225d402cdf711daebec16fa72bc1
 import com.example.beautyboutique.Repositories.ProductImageRepository;
 import com.example.beautyboutique.Repositories.ProductRepository;
 import com.example.beautyboutique.Services.Brand.BrandService;
@@ -35,8 +30,6 @@ public class ProductServiceImpl implements ProductService {
     private ProductRepository productRepository;
     @Autowired
     private ProductImageRepository productImageRepository;
-<<<<<<< HEAD
-=======
     @Autowired
     private BrandService brandService;
     @Autowired
@@ -46,7 +39,6 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private BrandRepository brandRepository;
 
->>>>>>> 007f10876fe2225d402cdf711daebec16fa72bc1
     @Override
     public Product save(Product product) {
         return productRepository.save(product);
@@ -125,10 +117,7 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> findProductBycCategoryId(int categoryId) {
         return this.productRepository.findProductByCategoryId(categoryId);
     }
-<<<<<<< HEAD
-    public ProductImage createProductImage(ProductImage image){
-        return productImageRepository.save(image);
-=======
+
 
     @Override
     public List<Product> findProductByPositionId(int brandId) {
@@ -236,7 +225,6 @@ public class ProductServiceImpl implements ProductService {
                     });
         }
         return createdProduct;
->>>>>>> 007f10876fe2225d402cdf711daebec16fa72bc1
     }
 }
 
