@@ -1,15 +1,10 @@
 package com.example.beautyboutique.Controllers;
-
-
 import com.example.beautyboutique.DTOs.Requests.Product.ProductRequest;
 import com.example.beautyboutique.Exception.ResourceNotFoundException;
 import com.example.beautyboutique.Models.Product;
 import com.example.beautyboutique.Services.Brand.BrandService;
-import com.example.beautyboutique.Services.Brand.BrandServiceImpl;
 import com.example.beautyboutique.Services.Category.CategoryService;
-import com.example.beautyboutique.Services.Category.CategoryServiceImpl;
 import com.example.beautyboutique.Services.Product.ProductService;
-import com.example.beautyboutique.Services.User.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
