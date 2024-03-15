@@ -3,6 +3,9 @@ package com.example.beautyboutique.Models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.util.Date;
 
 @Entity
 @Data
@@ -28,8 +31,9 @@ public class User {
     @Column(name = "isActive", columnDefinition = "int")
     private Integer isActive;
 
-    @Column(name = "dateOfBirth", columnDefinition = "date")
-    private Integer dateOfBirth;
+    @Column(name = "dateOfBirth", columnDefinition = "DATETIME")
+    @CreationTimestamp
+    private Date dateOfBirth;
 
     @Column(name = "imageId", columnDefinition = "varchar(255)")
     private String imageId;

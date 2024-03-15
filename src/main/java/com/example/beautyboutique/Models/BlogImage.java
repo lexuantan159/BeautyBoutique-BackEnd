@@ -15,7 +15,7 @@ public class BlogImage {
     @Column(name = "imageId", columnDefinition = "varchar(255)", nullable = false)
     private String id;
 
-    @Column(name = "imageUrl", columnDefinition = "varchar(255)")
+    @Column(name = "imageUrl", columnDefinition = "text")
     private String imageUrl;
 
     @ManyToOne

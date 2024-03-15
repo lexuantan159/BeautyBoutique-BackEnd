@@ -1,7 +1,4 @@
 package com.example.beautyboutique.Services.Comment;
-
-import com.example.beautyboutique.Models.BlogImage;
-import com.example.beautyboutique.Models.BlogPost;
 import com.example.beautyboutique.Models.Comment;
 import com.example.beautyboutique.Repositories.CommentRepository;
 import org.springframework.beans.factory.annotation.Autowired;

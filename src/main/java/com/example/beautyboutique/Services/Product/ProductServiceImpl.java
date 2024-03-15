@@ -44,15 +44,14 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.save(product);
     }
 
-    public Product saveAfterCheck(Product product) {
+    public Product saveAfterCheck(Product product) throws DataIntegrityViolationException {
         if (productRepository.existsByProductName(product.getProductName())) {
-            System.out.println("Product name already exists");
-            return null;
+            throw new DataIntegrityViolationException("Product name already exists");
         }
         return productRepository.save(product);
     }
 
-    public Product delete(Integer id) {
+    public Product delete(Integer id) throws ResourceNotFoundException {
         Product productToDelete = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
         productRepository.delete(productToDelete);
@@ -60,7 +59,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product get(Integer id, Integer pageNumber, Integer pageSize) {
+    public Product get(Integer id, Integer pageNumber, Integer pageSize) throws ResourceNotFoundException {
         try {
             Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
             Page<Product> productPage = productRepository.findAll(pageable);
@@ -73,7 +72,7 @@ public class ProductServiceImpl implements ProductService {
                 throw new ResourceNotFoundException("Product with id " + id + " not found on the requested page");
             }
 
-            return products.get(id - 1); // id - 1 vì id bắt đầu từ 1 trong yêu cầu người dùng, nhưng danh sách sản phẩm bắt đầu từ index 0
+            return products.get(id - 1);
         } catch (NullPointerException e) {
             throw new IllegalArgumentException("Invalid input parameters");
         }
@@ -81,7 +80,7 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
-    public List<Product> findAll(Integer pageNumber, Integer pageSize) {
+    public List<Product> findAll(Integer pageNumber, Integer pageSize) throws RuntimeException {
         try {
             Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
             Page<Product> productPage = productRepository.findAll(pageable);
@@ -93,13 +92,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product findById(Integer id) {
+    public Product findById(Integer id) throws ResourceNotFoundException {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found "));
     }
 
     @Override
-    public List<Product> findByName(String productName, Integer pageNumber, Integer pageSize) {
+    public List<Product> findByName(String productName, Integer pageNumber, Integer pageSize) throws ResourceNotFoundException {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Page<Product> productsPage = productRepository.findByProductNameContaining(productName, pageable);
         if (productsPage.isEmpty()) {
@@ -114,15 +113,32 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<Product> findProductBycCategoryId(int categoryId) {
-        return this.productRepository.findProductByCategoryId(categoryId);
+    public List<Product> findProductBycCategoryId(int categoryId) throws ResourceNotFoundException {
+        try {
+            List<Product> products = this.productRepository.findProductByCategoryId(categoryId);
+            if (products.isEmpty()) {
+                throw new ResourceNotFoundException("Products with category id " + categoryId + " not found");
+            }
+            return products;
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
 
     @Override
-    public List<Product> findProductByPositionId(int brandId) {
-        return this.productRepository.findProductByBrandId(brandId);
+    public List<Product> findProductByBrandId(int brandId) throws ResourceNotFoundException {
+        try {
+            List<Product> products = this.productRepository.findProductByBrandId(brandId);
+            if (products.isEmpty()) {
+                throw new ResourceNotFoundException("Products with brand id " + brandId + " not found");
+            }
+            return products;
+        } catch (Exception e) {
+                throw e;
+        }
     }
+
 
     public void createProductImages(Product product, String[] imageIds, String[] imageUrls) throws Exception {
         if (imageIds.length != imageUrls.length) {
@@ -168,13 +184,11 @@ public class ProductServiceImpl implements ProductService {
                 Brand newBrand = newBrandOptional.get();
                 product.setBrand(newBrand);
             }
-
             product.setProductName(productUpdate.getProductName());
             product.setQuantity(productUpdate.getQuantity());
             product.setDescription(productUpdate.getDescription());
-
-            // Assuming actualPrice is updated in ProductRequest
             product.setActualPrice(productUpdate.getActualPrice());
+            product.setSalePrice(product.getSalePrice());
 
             if (productUpdate.getImageIds() != null && productUpdate.getImageUrls() != null) {
                 IntStream.range(0, productUpdate.getImageIds().length)
@@ -227,5 +241,3 @@ public class ProductServiceImpl implements ProductService {
         return createdProduct;
     }
 }
-
-

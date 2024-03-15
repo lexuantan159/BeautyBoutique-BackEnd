@@ -9,18 +9,18 @@ import java.util.Optional;
 public interface UserService {
 
     public Optional<User> getUserByUserName(String userName);
+
     public Optional<User> getUserById(Integer id);
 
     List<User> findAll();
-
-  User findById(Integer id);
 
     List<User> findByName(String userName);
 
     User delete(Integer id);
 
-    User saveafftercheck (User user);
+    User saveAfterCheck (User user);
 
+    User updateUser (Integer id , User userUpdate);
 
     User save(User user);
 }

@@ -21,7 +21,7 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
-                                .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE).permitAll()
                                 .requestMatchers(HttpMethod.POST).permitAll()
                                 .requestMatchers(HttpMethod.GET).permitAll()
                                 .requestMatchers("/api/cart/**").permitAll()
