@@ -2,6 +2,7 @@ package com.example.beautyboutique.Controllers;
 
 import com.example.beautyboutique.DTOs.Requests.Payment.CartItemId;
 import com.example.beautyboutique.DTOs.Responses.Order.*;
+import com.example.beautyboutique.DTOs.Responses.ResponseDTO;
 import com.example.beautyboutique.DTOs.Responses.ResponseMessage;
 import com.example.beautyboutique.Models.Orders;
 import com.example.beautyboutique.Models.Payment;
@@ -98,14 +99,15 @@ public class OrderController {
                                                        @RequestParam(name = "shipDetailId") Integer shipDetailId,
                                                        @RequestParam(name = "deliveryId") Integer deliveryId,
                                                        @RequestParam(name = "paymentId") Integer paymentId,
-                                                       @RequestParam(name = "voucherId") Integer voucherId
+                                                       @RequestParam(name = "voucherId", required = false) Integer voucherId
 
     ) throws JSONException, URISyntaxException, IOException {
         try {
-            Map<String, Object> result = zaloPayService.statusOrder(zpTransToken);
-            System.out.println(result.get("returncode"));
-            System.out.println(result.get("returnmessage"));
+            System.out.println("Voucher" + voucherId);
             if (zpTransToken != null) {
+                Map<String, Object> result = zaloPayService.statusOrder(zpTransToken);
+                System.out.println(result.get("returncode"));
+                System.out.println(result.get("returnmessage"));
                 if ((int) result.get("returncode") == 1 && result.get("returnmessage").toString().equals("Giao dịch thành công")) {
                     CreatedOrder createdOrder = orderService.createOrder(userId, shipDetailId, deliveryId, paymentId, voucherId, cartItemId.getCartItemsId());
                     if (createdOrder.getStatus())
@@ -125,7 +127,7 @@ public class OrderController {
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            return new ResponseEntity<>("Internal Server!", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Internal Server error!", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -173,6 +175,22 @@ public class OrderController {
             return new ResponseEntity<>(new ResponseMessage("Internal Server!"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    @PutMapping(value = "/change-status")
+    public ResponseEntity<?> changeStatus(
+            @RequestParam(name = "userId") Integer userId,
+            @RequestParam(name = "statusId") Integer statusId,
+            @RequestParam(name = "orderItemId") Integer orderItemId) {
+        try {
+            ResponseDTO responseDTO = orderService.changeStatusOrder(userId, orderItemId, statusId);
+            if (responseDTO.getIsSuccess())
+                return new ResponseEntity<>(new ResponseMessage(responseDTO.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(new ResponseMessage(responseDTO.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return new ResponseEntity<>(new ResponseMessage("Internal Server!"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 

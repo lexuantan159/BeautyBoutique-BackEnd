@@ -34,5 +34,5 @@ public class Feedback {
 
     @Column(name = "createdAt", columnDefinition = "DATETIME", nullable = false, updatable = false)
     @CreationTimestamp
-    private Date startDate;
+    private Date createdAt;
 }

@@ -19,6 +19,8 @@ public interface UserService {
 
     User saveAfterCheck (User user);
 
+    User updateUser(Integer id, User userUpdate);
+
     User update(Integer id, UserRequest userUpdate);
 
 

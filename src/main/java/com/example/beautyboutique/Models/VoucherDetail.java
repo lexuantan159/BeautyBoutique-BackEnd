@@ -18,10 +18,10 @@ public class VoucherDetail {
 
     @ManyToOne
     @JoinColumn(name = "userId")
+    @JsonIgnore
     private User user;
 
     @ManyToOne
-    @JsonIgnore
     @JoinColumn(name = "voucherId")
     private Voucher voucher;
 

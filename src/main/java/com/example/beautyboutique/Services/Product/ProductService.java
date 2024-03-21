@@ -28,8 +28,10 @@ public interface ProductService {
 
     List<Product> findProductBycCategoryId(int categoryId);
 
+    List<Product> findProductByBrandId(int brandId);
+
     ProductImage createProductImage(ProductImage image);
-    List<Product> findProductByPositionId(int brandId);
+
 
     Product updateProduct(Integer id, ProductRequest productUpdate);
 }

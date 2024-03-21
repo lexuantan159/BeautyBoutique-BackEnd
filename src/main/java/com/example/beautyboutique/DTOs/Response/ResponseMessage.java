@@ -1,4 +1,4 @@
-package com.example.beautyboutique.Payload.Response;
+package com.example.beautyboutique.DTOs.Response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

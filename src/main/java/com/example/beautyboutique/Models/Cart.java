@@ -23,4 +23,9 @@ public class Cart {
     @ManyToOne
     @JoinColumn(name = "userId")
     private User user;
+
+    public Cart(BigDecimal totalPrice, User user) {
+        this.totalPrice = totalPrice;
+        this.user = user;
+    }
 }

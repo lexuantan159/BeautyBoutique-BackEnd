@@ -59,4 +59,11 @@ public class Orders {
         this.orderStatus = orderStatus;
         this.voucher = voucher;
     }
+    public Orders(ShipDetail shipDetail, BigDecimal totalPrice, Delivery delivery, Payment payment, OrderStatus orderStatus) {
+        this.shipDetail  = shipDetail;
+        this.totalPrice = totalPrice;
+        this.delivery = delivery;
+        this.payment = payment;
+        this.orderStatus = orderStatus;
+    }
 }

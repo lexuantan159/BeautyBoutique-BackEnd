@@ -1,11 +1,12 @@
 package com.example.beautyboutique.Services.Order;
-
 import com.example.beautyboutique.DTOs.Responses.Order.CancelOrder;
 import com.example.beautyboutique.DTOs.Responses.Order.CreatedOrder;
 import com.example.beautyboutique.DTOs.Responses.Order.PageOrder;
 import com.example.beautyboutique.DTOs.Responses.Order.UpdateOrder;
+import com.example.beautyboutique.DTOs.Responses.ResponseDTO;
 import com.example.beautyboutique.Models.*;
 import com.example.beautyboutique.Repositories.*;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,10 +14,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.expression.ExpressionException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -51,12 +52,11 @@ public class OrderServiceImpl implements OrderService {
             System.out.println("cartItemsId is null!");
             // Handle the null case, throw an exception, or return an error
         }
+        assert cartItemIds != null;
         for (Integer cartItemId : cartItemIds) {
-
             Optional<CartItem> cartItemOptional = cartItemRepository.findById(cartItemId);
             if (cartItemOptional.isPresent()) {
                 CartItem cartItem = cartItemOptional.get();
-                System.out.println(cartItem.getTotalPrice());
                 totalPrice = totalPrice.add(cartItem.getTotalPrice());
             }
         }
@@ -78,24 +78,23 @@ public class OrderServiceImpl implements OrderService {
                     .orElseThrow(() -> new ExpressionException("Payment not found!"));
             OrderStatus orderStatus = statusRepository.findById(1)
                     .orElseThrow(() -> new ExpressionException("Status not found!"));
-            Voucher voucher = voucherRepository.findById(voucherId)
-                    .orElseThrow(() -> new ExpressionException("Voucher not found!"));
-
 
             BigDecimal totalPrice = sumPriceItem(cartItemsId);
             if (cartItemsId.length > 0 && totalPrice.compareTo(BigDecimal.ZERO) == 0) {
                 return new CreatedOrder(true, "Create Order fail, cart item not found!");
             }
-            // handle create order
-            Orders order = new Orders(shipDetail, totalPrice, delivery, payment, orderStatus, voucher);
-            // handle create order details
-            for (Integer cartItemId : cartItemsId) {
-                handleOrderDetailCreation(order, cartItemId);
+            Orders order = new Orders(shipDetail, totalPrice, delivery, payment, orderStatus);
+            if (voucherId != null) {
+                Optional<Voucher> voucherOptional = voucherRepository.findById(voucherId);
+                Voucher voucher = voucherOptional.orElse(null);
+                order.setVoucher(voucher);
             }
-            // handle reset total price in cart
+            if (!isEnoughQuantity(cartItemsId))
+                return new CreatedOrder(false, "Not enough quantity!");
+            order = orderRepository.save(order);
+            // handle create order details
+            return handleOrderDetailCreation(order, cartItemsId);
 
-            orderRepository.save(order);
-            return new CreatedOrder(true, "Create Order successfully!");
         } catch (Exception e) {
             // Log the exception
             System.out.println("Error creating order: " + e.getMessage());
@@ -106,7 +105,6 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public PageOrder getOrderHistory(Integer userId, Integer pageNo, Integer pageSize, String sortBy, String sortDir) {
         try {
-            System.out.println(">>>>>>>>>>>>>>>>>" + userId);
             Pageable pageable = PageRequest.of(pageNo, pageSize);
             if (sortDir != "None") {
                 // Create Sorted instance
@@ -136,6 +134,7 @@ public class OrderServiceImpl implements OrderService {
         if (ordersOptional.isEmpty())
             return new CancelOrder(false, "Order not found!");
 
+
         // handle check owner order
         Orders orders = ordersOptional.get();
         User user = ordersOptional.get().getShipDetail().getUser();
@@ -147,7 +146,13 @@ public class OrderServiceImpl implements OrderService {
         if (statusId > 1)
             return new CancelOrder(false, "The order has been shipped and you cannot cancel the order!");
 
-        return handleCancelOrder(orders);
+        Integer idCancelOrderStatus = 4;
+        Optional<OrderStatus> statusOptional = statusRepository.findById(idCancelOrderStatus);
+        if (statusOptional.isEmpty())
+            return new CancelOrder(false, "Status not found!");
+        OrderStatus orderStatus = statusOptional.get();
+
+        return handleCancelOrder(orders, orderStatus);
     }
 
     @Override
@@ -204,10 +209,38 @@ public class OrderServiceImpl implements OrderService {
 
         // handle check update status
         Orders orders = ordersOptional.get();
-        if(orders.getOrderStatus().getId() == 2 || orders.getOrderStatus().getId() == 4)
+        if (orders.getOrderStatus().getId() == 2 || orders.getOrderStatus().getId() == 4)
             return new UpdateOrder(true, "You have approved this order!");
         OrderStatus orderStatus = orderStatusOptional.get();
         return updateStatus(orders, orderStatus);
+    }
+
+    @Override
+    public ResponseDTO changeStatusOrder(Integer userId, Integer orderItemId, Integer statusId) {
+        try {
+            Optional<Orders> orderDetailOptional = orderRepository.findById(orderItemId);
+            if (orderDetailOptional.isEmpty())
+                return new ResponseDTO(false, "Order Detail not found!");
+            // handle set status
+            Optional<OrderStatus> orderStatusOptional = statusRepository.findById(statusId);
+            if (orderStatusOptional.isEmpty())
+                return new ResponseDTO(false, "Order not found!");
+
+            Orders orderDetail = orderDetailOptional.get();
+            Integer statusCheck = orderDetail.getOrderStatus().getId();
+            if(statusCheck == 4 || statusCheck == 1) {
+                return new ResponseDTO(true, "Can't Change Status Order!");
+            }
+            OrderStatus orderStatus = orderStatusOptional.get();
+
+            orderDetail.setOrderStatus(orderStatus);
+            orderRepository.save(orderDetail);
+            return new ResponseDTO(true, "Change Status Order successfully!");
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return new ResponseDTO(false, "Change Status Order failed");
+        }
     }
 
     private UpdateOrder updateStatus(Orders order, OrderStatus status) {
@@ -221,9 +254,21 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private CancelOrder handleCancelOrder(Orders order) {
+    private CancelOrder handleCancelOrder(Orders order, OrderStatus orderStatus) {
         try {
-            orderRepository.delete(order);
+            List<OrderDetail> orderDetails = order.getOrdersDetails();
+            for (OrderDetail orderDetail : orderDetails) {
+                Product product = orderDetail.getProduct();
+                Integer quantity = orderDetail.getQuantity();
+                if (product != null) {
+                    if (quantity != null && quantity > 0) {
+                        product.setQuantity(product.getQuantity() + quantity);
+                        productRepository.save(product);
+                    }
+                }
+            }
+            order.setOrderStatus(orderStatus);
+            orderRepository.save(order);
             return new CancelOrder(true, "Cancel order successfully!");
         } catch (Exception e) {
             return new CancelOrder(false, "Cancel order fail!");
@@ -231,28 +276,61 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private void handleOrderDetailCreation(Orders order, Integer cartItemId) {
-        cartItemRepository.findById(cartItemId).ifPresent(cartItem -> {
-            Product product = cartItem.getProduct();
-            Integer inStock = product.getQuantity();
-            Integer quantityBuy = cartItem.getQuantity();
-            // check quantity in stock
-            if (inStock - quantityBuy < 0)
-                throw new ExpressionException("Not enough quantity!");
-
-            // handle quantity products
-            product.setQuantity(inStock - quantityBuy);
-            productRepository.save(product);
-
-            Integer quantity = cartItem.getQuantity();
-            // handle create order details
-            OrderDetail orderDetail = new OrderDetail(order, product, quantity);
-            orderDetailRepository.save(orderDetail);
-
-            // handle delete cart Item
-            cartItemRepository.delete(cartItem);
-
-        });
+    @Transactional
+    public CreatedOrder handleOrderDetailCreation(Orders order, Integer[] cartItemsId) {
+        try {
+            for (Integer cartItemId : cartItemsId) {
+                Optional<CartItem> cartItemOptional = cartItemRepository.findById(cartItemId);
+                if (cartItemOptional.isEmpty()) {
+                    // Nếu cartItem không tồn tại, bạn có thể xử lý theo nhu cầu của mình, ví dụ: bỏ qua hoặc đưa ra thông báo lỗi
+                    return new CreatedOrder(false, "CartItem with ID " + cartItemId + " not found!");
+                }
+                CartItem cartItem = cartItemOptional.get();
+                Product product = cartItem.getProduct();
+                Integer inStock = product.getQuantity();
+                Integer quantityBuy = cartItem.getQuantity();
+                // Kiểm tra số lượng tồn kho
+                if (inStock - quantityBuy < 0)
+                    return new CreatedOrder(false, "Not enough quantity!");
+                // Xử lý số lượng sản phẩm
+                product.setQuantity(inStock - quantityBuy);
+                productRepository.save(product);
+                Integer quantity = cartItem.getQuantity();
+                // Xử lý tạo chi tiết đơn hàng
+                OrderDetail orderDetail = new OrderDetail(order, product, quantity);
+                orderDetailRepository.save(orderDetail);
+                // Xử lý xóa mục giỏ hàng
+                cartItemRepository.delete(cartItem);
+            }
+            // Lưu đơn hàng
+            orderRepository.save(order);
+            return new CreatedOrder(true, "Create Order successfully!");
+        } catch (Exception e) {
+            System.out.println("Loi:" + e.getMessage());
+            return new CreatedOrder(false, "Create Order fail!");
+        }
     }
+
+    private Boolean isEnoughQuantity(Integer[] cartItemsId) {
+        try {
+            for (Integer cartItemId : cartItemsId) {
+                Optional<CartItem> cartItemOptional = cartItemRepository.findById(cartItemId);
+                if (cartItemOptional.isEmpty()) {
+                    return false;
+                }
+                CartItem cartItem = cartItemOptional.get();
+                Product product = cartItem.getProduct();
+                Integer inStock = product.getQuantity();
+                Integer quantityBuy = cartItem.getQuantity();
+                if (inStock - quantityBuy < 0)
+                    return false;
+            }
+            return true;
+        } catch (Exception e) {
+            System.out.println("Loi:" + e.getMessage());
+            return false;
+        }
+    }
+
 
 }

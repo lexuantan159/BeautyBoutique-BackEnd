@@ -2,6 +2,7 @@ package com.example.beautyboutique.Controllers;
 
 import com.example.beautyboutique.DTOs.Responses.Cart.CartResponse;
 import com.example.beautyboutique.DTOs.Responses.Cart.PageCart;
+import com.example.beautyboutique.DTOs.Responses.ResponseDTO;
 import com.example.beautyboutique.Models.Cart;
 import com.example.beautyboutique.Models.CartItem;
 import com.example.beautyboutique.Services.Cart.CartServiceImpl;
@@ -56,8 +57,7 @@ public class CartController {
         }
     }
 
-    @DeleteMapping(value = "/delete-cart"
-    )
+    @DeleteMapping(value = "/delete-cart")
     public ResponseEntity<?> deleteCart(@RequestParam(value = "userId") Integer userId,
                                         @RequestParam(value = "cartItemId") Integer cartItemId) {
         try {
@@ -66,6 +66,19 @@ public class CartController {
                 return new ResponseEntity<>("Delete cart item successfully!", HttpStatus.OK);
             return new ResponseEntity<>("Delete cart item fail!", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
+            return new ResponseEntity<>("Delete cart item fail!", HttpStatus.BAD_REQUEST);
+        }
+    }
+    @PostMapping(value = "/add-to-cart")
+    public ResponseEntity<?> addToCart(@RequestParam(value = "userId") Integer userId ,
+                                       @RequestParam(value = "productId") Integer productId){
+        try {
+            ResponseDTO addCart = cartService.addToCard(userId,productId);
+            if (addCart.getIsSuccess()){
+                return new ResponseEntity<>(addCart.getMessage(),HttpStatus.OK);
+            }
+            return new ResponseEntity<>(addCart.getMessage(),HttpStatus.BAD_REQUEST);
+        }catch (Exception e){
             return new ResponseEntity<>("Delete cart item fail!", HttpStatus.BAD_REQUEST);
         }
     }

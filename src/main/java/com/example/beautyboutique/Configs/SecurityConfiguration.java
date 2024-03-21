@@ -33,16 +33,15 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(requests ->
                     requests
-                            .requestMatchers("/api/auth/login").permitAll()
-                            .requestMatchers("/api/users/deleteUser").hasAnyRole("ADMIN")
+                            .requestMatchers(HttpMethod.DELETE).permitAll()
+                            .requestMatchers(HttpMethod.POST).permitAll()
+                            .requestMatchers(HttpMethod.GET).permitAll()
+                            .requestMatchers(HttpMethod.PUT).permitAll()
+                            .requestMatchers("/api/auth/**").permitAll()
                             .requestMatchers("/api/users/**").hasAnyRole("USER")
-                            .requestMatchers("/api/auth/register").permitAll()
-                            .requestMatchers("/api/auth/forgot").permitAll()
                             .requestMatchers("/api/cart/**").permitAll()
                             .requestMatchers("/api/blog/**").permitAll()
                             .requestMatchers("/api/voucher/**").permitAll()
-                            .requestMatchers("/api/product/**").permitAll()
-                            .requestMatchers("/api/category/**").permitAll()
                             .requestMatchers("/api/order/**").permitAll()
                             .requestMatchers("/api/ship-detail/**").permitAll()//.hasRole("USER")
                             .anyRequest().authenticated())
@@ -69,9 +68,9 @@ public class SecurityConfiguration {
             throws  Exception
     {
         return config.getAuthenticationManager();
-
     }
-    @Bean
+
+        @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedOrigin("http://localhost:3000"); // Add the origins you need

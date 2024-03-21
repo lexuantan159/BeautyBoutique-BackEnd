@@ -66,6 +66,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User updateUser(Integer id, User userUpdate) {
+        return null;
+    }
+
+    @Override
     public User update(Integer id, UserRequest userUpdate) {
         User user = findById(id);
         user.setEmail(userUpdate.getEmail());
@@ -90,6 +95,8 @@ public class UserServiceImpl implements UserService {
     public User save(User user) {
         return userRepository.save(user);
     }
+
+
 
     @Override
     public Optional<User> getUserById(Integer userId) {

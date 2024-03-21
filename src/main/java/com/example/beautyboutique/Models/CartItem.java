@@ -30,8 +30,15 @@ public class CartItem {
     @Column(name = "quantity", columnDefinition = "int")
     private Integer quantity;
 
-    @Column(name = "totalPrice", insertable = false, updatable = false)
+    @Column(name = "totalPrice")
     private BigDecimal totalPrice;
+
+    public CartItem(Cart cart, Product product, Integer quantity ,BigDecimal totalPrice) {
+        this.cart = cart;
+        this.product = product;
+        this.quantity = quantity;
+        this.totalPrice = totalPrice;
+    }
 
     @PostLoad
     public void calculateTotalPrice() {

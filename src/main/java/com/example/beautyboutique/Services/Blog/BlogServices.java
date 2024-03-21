@@ -40,7 +40,6 @@ public class BlogServices implements  BlogService {
 
     @Override
     public BlogPost updateBlog(Integer id, BlogPost updatedBlogPost) {
-        System.out.printf("--------ID--------" + id);
         try {
             Optional<BlogPost> optionalBlogPost = blogRepository.findById(id);
             if (optionalBlogPost.isPresent()) {
@@ -63,7 +62,7 @@ public class BlogServices implements  BlogService {
         } catch (Exception e) {
             System.out.println("An error occurred while updating the blog post: " + e.getMessage());
         }
-        return null; // Indicate failure
+        return null;
     }
 
 
