@@ -29,6 +29,8 @@ public class User extends BaseEntity implements UserDetails {
 
     @Column(name = "username", length = 10, nullable = false)
     private String username;
+    @Column(name = "email", length = 50, nullable = false)
+    private String email;
 
     @Column(name = "address", length = 200)
     private String address;
@@ -60,7 +62,8 @@ public class User extends BaseEntity implements UserDetails {
         //authorityList.add(new SimpleGrantedAuthority("ADMIN"));
         return authorityList;
     }
-
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    private List<UserImage> images;
     @Override
     public String getUsername() {
         return username;

@@ -41,8 +41,8 @@ public class HexStringUtil {
 
 	/**
 	 * Convert a hexadecimal string to a byte array
-	 * 
-	 * @param raw
+	 *
+	 * @param hex
 	 *            A hexadecimal string
 	 * 
 	 * @return The byte array

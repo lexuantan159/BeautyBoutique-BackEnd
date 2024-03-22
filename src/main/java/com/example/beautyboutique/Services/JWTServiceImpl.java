@@ -9,6 +9,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.SpringVersion;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,9 +25,10 @@ import java.util.function.Function;
 
 @Service
 public class JWTServiceImpl implements JWTService {
+    @Autowired
+    UserRepository userRepository;
     @Value("${jwt.secretKey}")
     private String secretKey;
-    private final UserRepository userRepository;
 
     public JWTServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -47,6 +49,23 @@ public class JWTServiceImpl implements JWTService {
                 .setExpiration(new Date(System.currentTimeMillis() + 604800000))
                 .signWith(getSiginKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    @Override
+    public Integer getUserIdByToken(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+
+        if (token != null && token.startsWith("Bearer ")) {
+            // Remove "Bearer " prefix
+            token = token.substring(7);
+            String userName = extractClaim(token, Claims::getSubject);
+            Optional<User> userOptional = userRepository.findByUsername(userName);
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                return user.getId();
+            }
+        }
+        return -1;
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -80,20 +99,5 @@ public class JWTServiceImpl implements JWTService {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    public Integer getUserIdByToken(HttpServletRequest request) {
-        String token = request.getHeader("Authorization");
-
-        if (token != null && token.startsWith("Bearer ")) {
-            // Remove "Bearer " prefix
-            token = token.substring(7);
-            String userName = extractClaim(token, Claims::getSubject);
-            Optional<User> userOptional = userRepository.findByUsername(userName);
-            if (userOptional.isPresent()) {
-                User user = userOptional.get();
-                return user.getId();
-            }
-        }
-        return -1;
-    }
 
 }
