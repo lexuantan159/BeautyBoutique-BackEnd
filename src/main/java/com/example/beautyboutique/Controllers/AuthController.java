@@ -1,13 +1,15 @@
 package com.example.beautyboutique.Controllers;
 
-import com.example.beautyboutique.DTOs.*;
+import com.example.beautyboutique.DTOs.JwtAuthenticationResponse;
+import com.example.beautyboutique.DTOs.RefreshTokenRequest;
+import com.example.beautyboutique.DTOs.SignInRequest;
+import com.example.beautyboutique.DTOs.SignUpRequest;
 import com.example.beautyboutique.Exceptions.DataNotFoundException;
 import com.example.beautyboutique.Models.User;
 import com.example.beautyboutique.Services.AuthenticationService;
 import com.example.beautyboutique.Services.EmailService;
 import com.example.beautyboutique.Services.User.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthenticationService authenticationService;
+
     private final UserService userService;
 
     private final EmailService mailService;
@@ -32,8 +35,6 @@ public class AuthController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
-
     @PostMapping("/login")
     public ResponseEntity<?> siginin(
             @RequestBody SignInRequest signInRequest){
@@ -45,24 +46,28 @@ public class AuthController {
         }
     }
 
-
-
-
     @PostMapping("/refresh")
     public ResponseEntity<JwtAuthenticationResponse> refresh(
             @RequestBody RefreshTokenRequest refreshTokenRequest) {
         return ResponseEntity.ok(authenticationService.refreshToken(refreshTokenRequest));
     }
-    @PostMapping("/forgot")
-    public ResponseEntity<String> reset(
-            @RequestParam(name="username") String username)
+    @PostMapping("/sendotp")
+    public ResponseEntity<String> otp(
+            @RequestParam(name = "username") String username)
     {
-        String subject= "Khoi phuc mat khau:";
-        String newpass = "new password: " +  authenticationService.resetpass(username);
+        String subject= "Ma OTP CUA BAN:";
+        String OTP =   authenticationService.generateRandomOTP();
         String email = authenticationService.getEmail(username);
-        mailService.sendEmail(email,subject,newpass);
-        return  ResponseEntity.ok("ok");
+        return  ResponseEntity.ok(mailService.sendEmail(email,subject,OTP));
     }
-
+    @PostMapping("/resetpass")
+    public ResponseEntity<String> resetpass(
+            @RequestParam(name = "username") String username)
+    {
+        String subject= "Mat khau moi cua ban la:";
+        String newpass=   authenticationService.resetpass(username);
+        String email = authenticationService.getEmail(username);
+        return  ResponseEntity.ok(mailService.sendEmail(email,subject,newpass));
+    }
 
 }

@@ -11,7 +11,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -26,7 +25,7 @@ public class AuthenticationServiceImpl  implements AuthenticationService{
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JWTService jwtService;
-    private final JavaMailSender mailSender;
+//    private final JavaMailSender mailSender;
     @Override
     public User signup(SignUpRequest signUpRequest) {
             String username =signUpRequest.getUsername();
@@ -101,6 +100,16 @@ public class AuthenticationServiceImpl  implements AuthenticationService{
         Random random = new Random();
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 8; i++) {
+            int index = random.nextInt(characters.length());
+            sb.append(characters.charAt(index));
+        }
+        return sb.toString();
+    }
+    public String generateRandomOTP() {
+        String characters = "0123456789";
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 4; i++) {
             int index = random.nextInt(characters.length());
             sb.append(characters.charAt(index));
         }

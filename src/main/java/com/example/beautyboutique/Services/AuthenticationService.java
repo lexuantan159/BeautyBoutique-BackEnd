@@ -10,6 +10,7 @@ public interface AuthenticationService {
     JwtAuthenticationResponse signin(SignInRequest signInRequest) throws Exception;
     JwtAuthenticationResponse refreshToken(RefreshTokenRequest refreshTokenRequest);
     String resetpass(String username);
+    public String generateRandomOTP();
     String getEmail(String username);
 
     User ChangePassWord(Integer id, String oldPassword, String newPassword) throws ResourceNotFoundException;

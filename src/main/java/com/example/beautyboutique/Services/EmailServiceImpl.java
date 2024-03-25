@@ -1,16 +1,11 @@
 package com.example.beautyboutique.Services;
 
-import com.example.beautyboutique.Models.User;
 import com.example.beautyboutique.Repositories.UserRepository;
-import com.example.beautyboutique.Services.User.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +22,7 @@ public class EmailServiceImpl implements EmailService {
         message.setSubject(subject);
         message.setText(body);
         mailSender.send(message);
-        return "send ok";
+        return body;
     }
 
 
