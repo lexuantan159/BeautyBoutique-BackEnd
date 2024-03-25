@@ -38,7 +38,7 @@ public class Voucher {
     private BigDecimal minimumOrder;
 
     @Column(name = "maximDiscount", columnDefinition = "DECIMAL(10, 2)")
-    private BigDecimal maximumDiscount;
+    private BigDecimal maximDiscount;
 
     @Column(name = "startDate", columnDefinition = "DATE", nullable = false)
     @Temporal(TemporalType.DATE)

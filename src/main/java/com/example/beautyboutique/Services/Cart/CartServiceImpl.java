@@ -102,7 +102,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public ResponseDTO addToCard(Integer userId, Integer productId) {
+    public ResponseDTO addToCard(Integer userId, Integer productId ,Integer quantity) {
         try {
             Optional<User> userOptional = userRepository.findById(userId);
             if (userOptional.isEmpty())
@@ -111,32 +111,34 @@ public class CartServiceImpl implements CartService {
             if (productOptional.isEmpty())
                 return new ResponseDTO(false, "Product not found!");
             Product product = productOptional.get();
+
             BigDecimal priceSaleProduct = product.getSalePrice();
+            BigDecimal quantityBig = BigDecimal.valueOf(quantity);
             Optional<Cart> cartOptional = cartRepository.findByUserId(userId);
             if (cartOptional.isPresent()) {
                 Cart cart = cartOptional.get();
                 BigDecimal totalPriceInCart = cart.getTotalPrice();
-                cart.setTotalPrice(totalPriceInCart.add(priceSaleProduct));
+                cart.setTotalPrice(totalPriceInCart.add(priceSaleProduct.multiply(quantityBig)));
                 cartRepository.save(cart);
                 Optional<CartItem> cartItemOptional = cartItemRepository.findByCart_IdAndProduct_Id(cart.getId(), productId);
                 if (cartItemOptional.isPresent()) {
                     CartItem cartItem = cartItemOptional.get();
                     Integer quantityInCartItem = cartItem.getQuantity();
                     BigDecimal totalPriceInCartItem = cartItem.getTotalPrice();
-                    BigDecimal newTotalPrice = (totalPriceInCartItem.add(priceSaleProduct));
-                    cartItem.setQuantity(quantityInCartItem + 1);
+                    BigDecimal newTotalPrice = (totalPriceInCartItem.add(priceSaleProduct.multiply(quantityBig)));
+                    cartItem.setQuantity(quantityInCartItem + quantity);
                     cartItem.setTotalPrice(newTotalPrice);
                     cartItemRepository.save(cartItem);
                     return new ResponseDTO(true, "Add to cart successfully!");
                 } else {
-                    CartItem cartItem = new CartItem(cart,product,1,priceSaleProduct);
+                    CartItem cartItem = new CartItem(cart,product,quantity,priceSaleProduct);
                     cartItemRepository.save(cartItem);
                     return new ResponseDTO(true, "Add to cart successfully!");
                 }
             } else {
                 Cart cart = new Cart(BigDecimal.valueOf(0), userOptional.get());
                 cartRepository.save(cart);
-                CartItem cartItem = new CartItem(cart, product, 1,priceSaleProduct);
+                CartItem cartItem = new CartItem(cart, product, quantity,priceSaleProduct);
 
                 cartItemRepository.save(cartItem);
                 cart.setTotalPrice(product.getSalePrice());

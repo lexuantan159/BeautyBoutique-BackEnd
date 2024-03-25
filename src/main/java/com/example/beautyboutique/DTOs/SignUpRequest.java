@@ -2,7 +2,7 @@ package com.example.beautyboutique.DTOs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
+import lombok.Data;
 
 import java.util.Date;
 

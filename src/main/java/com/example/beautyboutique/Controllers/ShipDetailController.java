@@ -7,6 +7,7 @@ import com.example.beautyboutique.DTOs.Responses.ResponseMessage;
 import com.example.beautyboutique.DTOs.Responses.ShipDetail.ResponseShipDetails;
 import com.example.beautyboutique.Models.ShipDetail;
 import com.example.beautyboutique.Models.User;
+import com.example.beautyboutique.Services.JWTService;
 import com.example.beautyboutique.Services.JWTServiceImpl;
 import com.example.beautyboutique.Services.ShipDetail.ShipDetailServiceImpl;
 import com.example.beautyboutique.Services.User.UserService;
@@ -34,7 +35,7 @@ public class ShipDetailController {
     private UserService userService;
 
     @Autowired
-    JWTServiceImpl jwtService;
+    private JWTService jwtService;
 
     @GetMapping(value = "/get-all")
     public ResponseEntity<?> getShipDetails(HttpServletRequest request) {

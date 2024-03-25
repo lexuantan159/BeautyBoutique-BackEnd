@@ -8,7 +8,9 @@ import com.example.beautyboutique.Models.BlogPost;
 import com.example.beautyboutique.Models.Comment;
 import com.example.beautyboutique.Models.User;
 import com.example.beautyboutique.Services.Blog.BlogServices;
+import com.example.beautyboutique.Services.JWTServiceImpl;
 import com.example.beautyboutique.Services.User.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,6 +30,8 @@ public class BlogControllers {
     BlogServices blogServices;
     @Autowired
     UserService userService;
+    @Autowired
+    JWTServiceImpl jwtService;
 
     @GetMapping(value = "/get-all-blog")
     public ResponseEntity<?> getAllBlog() {
@@ -44,15 +48,16 @@ public class BlogControllers {
             MediaType.MULTIPART_FORM_DATA_VALUE
     }, produces = {MediaType.APPLICATION_JSON_VALUE
     })
-    public @ResponseBody ResponseEntity<?> createBlog(BlogRequest request) {
+    public @ResponseBody ResponseEntity<?> createBlog(BlogRequest request , HttpServletRequest requestToken) {
         try {
+            System.out.printf("token --------------" + requestToken);
             String[] imageIds = request.getImageIds();
             String[] imageUrls = request.getImageUrls();
 
             if (imageIds == null || imageUrls == null || imageIds.length != imageUrls.length) {
                 return new ResponseEntity<>("Invalid imageIds or imageUrls", HttpStatus.BAD_REQUEST);
             }
-            Integer userId = request.getUserId();
+            Integer userId = jwtService.getUserIdByToken(requestToken);
             Optional<User> userBlog = userService.getUserById(userId);
             BlogPost blog = new BlogPost();
             blog.setUser(userBlog.get());
@@ -81,10 +86,10 @@ public class BlogControllers {
     }
 
     @DeleteMapping(value = "/delete-blog/")
-    public ResponseEntity<?> deleteBlog(@RequestParam(value = "id") Integer id,
-                                        @RequestParam(value = "userId") Integer userId) {
+    public ResponseEntity<?> deleteBlog(@RequestParam(value = "id") Integer id,HttpServletRequest requestToken) {
         try {
-            System.out.println(id);
+            System.out.printf("token --------------" + requestToken);
+            Integer userId = jwtService.getUserIdByToken(requestToken);
             if (id == null || id <= 0) {
                 return ResponseEntity.badRequest().body("Invalid blog ID");
             }
@@ -104,7 +109,6 @@ public class BlogControllers {
     @DeleteMapping(value = "/delete-image-blog-id/")
     public ResponseEntity<?> deleteAImage(@RequestParam(value = "id") String id) {
         try {
-            System.out.println(id);
             if (id == null || id.length() <= 0) {
                 return ResponseEntity.badRequest().body("Invalid blog ID");
             }
@@ -124,9 +128,9 @@ public class BlogControllers {
     }, produces = {MediaType.APPLICATION_JSON_VALUE
     })
     public @ResponseBody ResponseEntity<?> updateBlog(BlogRequest request,
-                                                      @RequestParam(value = "id") Integer id,
-                                                      @RequestParam(value = "userId") Integer userId) {
+                                                      @RequestParam(value = "id") Integer id,HttpServletRequest requestToken) {
         try {
+            Integer userId = jwtService.getUserIdByToken(requestToken);
             String[] imageIds = request.getImageIds();
             String[] imageUrls = request.getImageUrls();
             Optional<User> userBlog = userService.getUserById(userId);

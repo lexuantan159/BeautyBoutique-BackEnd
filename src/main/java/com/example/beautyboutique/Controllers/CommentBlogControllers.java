@@ -9,7 +9,9 @@ import com.example.beautyboutique.Models.Comment;
 import com.example.beautyboutique.Models.User;
 import com.example.beautyboutique.Services.Blog.BlogServices;
 import com.example.beautyboutique.Services.Comment.CommentServices;
+import com.example.beautyboutique.Services.JWTServiceImpl;
 import com.example.beautyboutique.Services.User.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,15 +33,19 @@ public class CommentBlogControllers {
 
     @Autowired
     BlogServices blogService;
+
+    @Autowired
+    JWTServiceImpl jwtService;
+
     @PostMapping(value = "/create-comment", consumes = {
             MediaType.APPLICATION_JSON_VALUE,
             MediaType.APPLICATION_FORM_URLENCODED_VALUE
     }, produces = {MediaType.APPLICATION_JSON_VALUE
     })
     @ResponseBody
-    ResponseEntity<?> createComment(CommentBlogRequest request) {
+    ResponseEntity<?> createComment(CommentBlogRequest request , HttpServletRequest requestToken) {
         try {
-           Integer userId = request.getUserId();
+           Integer userId = jwtService.getUserIdByToken(requestToken);
            Optional<User> userComment = userService.getUserById(userId);
 
            Integer blogId = request.getBlogId();
@@ -62,15 +68,17 @@ public class CommentBlogControllers {
     }
 
     @DeleteMapping(value = "/delete-comment")
-    public ResponseEntity<?> deleteComment(@RequestParam(value = "id") Integer id,
-                                           @RequestParam(value = "userId") Integer userId) {
+    public ResponseEntity<?> deleteComment(@RequestParam(value = "id") Integer id,HttpServletRequest requestToken) {
         try {
+            Integer userId = jwtService.getUserIdByToken(requestToken);
+            boolean isAdmin = jwtService.isAdmin(requestToken);
+            System.out.printf("isAdmin" + isAdmin);
             if (id == null || id <= 0) {
                 return ResponseEntity.badRequest().body("Invalid comment ID");
             }
             Comment comment = commentServices.getACommentById(id);
             int ownerId = comment.getUser().getId();
-            if (userId == ownerId) {
+            if (userId == ownerId || isAdmin) {
                 boolean isDelete = commentServices.deleteComment(id);
                 if (isDelete) {
                     return new ResponseEntity<>("Delete comment successfully!", HttpStatus.OK);
@@ -88,9 +96,9 @@ public class CommentBlogControllers {
     }, produces = {MediaType.APPLICATION_JSON_VALUE
     })
     public @ResponseBody ResponseEntity<?> updateComment(Comment content,
-                                                        @RequestParam(value = "id") Integer id,
-                                                        @RequestParam(value = "userId") Integer userId) {
+                                                        @RequestParam(value = "id") Integer id,HttpServletRequest requestToken) {
         try {
+            Integer userId = jwtService.getUserIdByToken(requestToken);
             if (id == null || id <= 0) {
                 return ResponseEntity.badRequest().body("Invalid comment ID");
             }

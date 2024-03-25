@@ -148,8 +148,8 @@ public class VoucherServices implements VoucherService {
                 if (updateVoucher.getMinimumOrder() != null) {
                     existingVoucher.setMinimumOrder(updateVoucher.getMinimumOrder());
                 }
-                if (updateVoucher.getMaximumDiscount() != null) {
-                    existingVoucher.setMaximumDiscount(updateVoucher.getMaximumDiscount());
+                if (updateVoucher.getMaximDiscount() != null) {
+                    existingVoucher.setMaximDiscount(updateVoucher.getMaximDiscount());
                 }
                 return voucherRepository.save(existingVoucher);
             } else {

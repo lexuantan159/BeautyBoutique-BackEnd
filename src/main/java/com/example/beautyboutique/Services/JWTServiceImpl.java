@@ -1,6 +1,7 @@
 package com.example.beautyboutique.Services;
 
 import com.example.beautyboutique.Exceptions.InvalidParamException;
+import com.example.beautyboutique.Models.Role;
 import com.example.beautyboutique.Models.User;
 import com.example.beautyboutique.Repositories.UserRepository;
 import io.jsonwebtoken.Claims;
@@ -9,6 +10,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.SpringVersion;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,7 +28,8 @@ import java.util.function.Function;
 public class JWTServiceImpl implements JWTService {
     @Value("${jwt.secretKey}")
     private String secretKey;
-    private final UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     public JWTServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -78,14 +81,15 @@ public class JWTServiceImpl implements JWTService {
         final String username = extractUserName(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
-
     public Integer getUserIdByToken(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
 
         if (token != null && token.startsWith("Bearer ")) {
             // Remove "Bearer " prefix
             token = token.substring(7);
+            System.out.println(token);
             String userName = extractClaim(token, Claims::getSubject);
+            System.out.println(userName);
             Optional<User> userOptional = userRepository.findByUsername(userName);
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
@@ -93,6 +97,23 @@ public class JWTServiceImpl implements JWTService {
             }
         }
         return -1;
+    }
+
+
+    public boolean isAdmin(HttpServletRequest request){
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+            String userName = extractClaim(token, Claims::getSubject);
+            Optional<User> userOptional = userRepository.findByUsername(userName);
+                if (userOptional.isPresent()) {
+                    User user = userOptional.get();
+                    if(user.getRole().getRoleId() == 1 ){
+                        return  true;
+                    }
+                }
+        }
+        return false;
     }
 
 }

@@ -47,17 +47,17 @@ public class User extends BaseEntity implements UserDetails {
 
     @ManyToOne
     @JoinColumn(name = "role_id")
-    private  com.example.beautyboutique.Models.Role role;
+    private  Role role;
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
         authorityList.add(new SimpleGrantedAuthority("ROLE_"+getRole().getRoleName().toUpperCase()));
-        //authorityList.add(new SimpleGrantedAuthority("ADMIN"));
         return authorityList;
     }
-
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    private List<UserImage> images;
     @Override
     public String getUsername() {
         return username;

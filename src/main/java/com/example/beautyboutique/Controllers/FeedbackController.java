@@ -3,8 +3,10 @@ import com.example.beautyboutique.DTOs.Requests.Product.FeedbackRequest;
 import com.example.beautyboutique.DTOs.Responses.Feedback.PageFeedback;
 import com.example.beautyboutique.Models.*;
 import com.example.beautyboutique.Services.Feedback.FeedbackServices;
+import com.example.beautyboutique.Services.JWTServiceImpl;
 import com.example.beautyboutique.Services.Product.ProductService;
 import com.example.beautyboutique.Services.User.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,6 +26,8 @@ public class FeedbackController {
     UserService userService;
     @Autowired
     ProductService productService;
+    @Autowired
+    JWTServiceImpl jwtService;
 
     @GetMapping(value = "/get-feedback-product")
     public ResponseEntity<?> getFeebackByProduct(@RequestParam(value = "productId") Integer productId) {
@@ -40,9 +44,9 @@ public class FeedbackController {
     }, produces = {MediaType.APPLICATION_JSON_VALUE
     })
     @ResponseBody
-    ResponseEntity<?> creteFeedback(FeedbackRequest request) {
+    ResponseEntity<?> creteFeedback(FeedbackRequest request, HttpServletRequest requestToken) {
         try {
-            Integer userId = request.getUserId();
+            Integer userId = jwtService.getUserIdByToken(requestToken);
             Optional<User> userFeedback = userService.getUserById(userId);
 
             Integer productId = request.getProductId();
@@ -65,10 +69,9 @@ public class FeedbackController {
         }
     }
     @DeleteMapping(value = "/delete-feedback")
-    public ResponseEntity<?> deleteFeedback(@RequestParam(value = "id") Integer id,
-                                            @RequestParam(value = "userId") Integer userId) {
+    public ResponseEntity<?> deleteFeedback(@RequestParam(value = "id") Integer id,HttpServletRequest requestToken) {
         try {
-            System.out.printf("Đã vào đến đây với " + id +"-----" +userId);
+            Integer userId = jwtService.getUserIdByToken(requestToken);
             if (id == null || id <= 0 || userId == null || userId <= 0) {
                 return ResponseEntity.badRequest().body("Invalid comment ID or user ID");
             }
@@ -103,9 +106,9 @@ public class FeedbackController {
     }, produces = {MediaType.APPLICATION_JSON_VALUE
     })
     public @ResponseBody ResponseEntity<?> updateFeedback(Feedback content,
-                                                         @RequestParam(value = "id") Integer id,
-                                                         @RequestParam(value = "userId") Integer userId) {
+                                                         @RequestParam(value = "id") Integer id,HttpServletRequest requestToken) {
         try {
+            Integer userId = jwtService.getUserIdByToken(requestToken);
             if (id == null || id <= 0) {
                 return ResponseEntity.badRequest().body("Invalid comment ID");
             }

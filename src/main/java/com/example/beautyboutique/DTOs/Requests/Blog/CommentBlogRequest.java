@@ -10,7 +10,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CommentBlogRequest {
-    private Integer userId;
     private Integer blogId;
     private String content;
 }

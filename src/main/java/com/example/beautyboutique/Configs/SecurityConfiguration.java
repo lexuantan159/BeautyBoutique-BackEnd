@@ -17,9 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 
 @Configuration
 @EnableWebSecurity
@@ -27,6 +25,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfiguration {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserService userService;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)throws  Exception{
         http
@@ -34,14 +33,28 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(requests ->
                     requests
                             .requestMatchers("/api/auth/login").permitAll()
-                            .requestMatchers("/api/users/**").permitAll()
+                            .requestMatchers("/api/users/deleteUser").hasAnyRole("ADMIN")
+                            .requestMatchers("/api/users/**").hasAnyRole("USER")
                             .requestMatchers("/api/auth/register").permitAll()
                             .requestMatchers("/api/auth/sendotp").permitAll()
                             .requestMatchers("/api/auth/resetpass").permitAll()
                             .requestMatchers("/api/cart/**").permitAll()
                             .requestMatchers("/api/blog/**").permitAll()
                             .requestMatchers("/api/voucher/**").permitAll()
-                            .requestMatchers("/api/voucher/**").permitAll()
+                            .requestMatchers("/api/product/**").permitAll()
+                            .requestMatchers("/api/category/**").permitAll()
+                            .requestMatchers("/api/auth/**").permitAll()
+                            .requestMatchers("/api/product/**").permitAll()
+                            .requestMatchers("/api/category/**").permitAll()
+                            .requestMatchers("/api/users/**").permitAll()
+                            .requestMatchers("/api/cart/**").permitAll()
+                            .requestMatchers("/api/blog/**").permitAll()
+                            .requestMatchers("/api/blog/comment/**").permitAll()
+                            .requestMatchers("/api/product/feedback/**").permitAll()
+                            .requestMatchers("/api/voucher/create-voucher").hasRole("ADMIN")
+                            .requestMatchers("/api/voucher/delete-voucher").hasRole("ADMIN")
+                            .requestMatchers("/api/voucher/update-voucher").hasRole("ADMIN")
+                            .requestMatchers("/api/voucher/get-all-voucher").permitAll()
                             .requestMatchers("/api/order/**").permitAll()
                             .requestMatchers("/api/ship-detail/**").permitAll()
                             .anyRequest().authenticated())
@@ -69,5 +82,4 @@ public class SecurityConfiguration {
     {
         return config.getAuthenticationManager();
     }
-
 }
