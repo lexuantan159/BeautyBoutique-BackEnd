@@ -73,6 +73,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public User update(Integer id, UserRequest userUpdate) {
         User user = findById(id);
+        if (!user.getEmail().equals(userUpdate.getEmail()) && userRepository.existsByEmail(userUpdate.getEmail())) {
+            throw new IllegalArgumentException("Email already exists.");
+        }
+        user.setFullName(userUpdate.getFullName());
         user.setEmail(userUpdate.getEmail());
         user.setDateOfBirth(userUpdate.getDateOfBirth());
         user.setAddress(userUpdate.getAddress());
