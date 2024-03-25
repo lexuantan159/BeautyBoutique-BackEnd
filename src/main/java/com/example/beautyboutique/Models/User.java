@@ -56,7 +56,8 @@ public class User extends BaseEntity implements UserDetails {
         authorityList.add(new SimpleGrantedAuthority("ROLE_"+getRole().getRoleName().toUpperCase()));
         return authorityList;
     }
-
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    private List<UserImage> images;
     @Override
     public String getUsername() {
         return username;

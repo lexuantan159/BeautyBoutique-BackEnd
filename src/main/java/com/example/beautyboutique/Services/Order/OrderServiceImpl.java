@@ -199,11 +199,9 @@ public class OrderServiceImpl implements OrderService {
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isEmpty())
             return new UpdateOrder(false, "User not found!");
-
         Optional<Orders> ordersOptional = orderRepository.findById(orderId);
         if (ordersOptional.isEmpty())
             return new UpdateOrder(false, "Order not found!");
-        // handle set status
         Integer statusPending = isAccept ? 2 : 4;
         Optional<OrderStatus> orderStatusOptional = statusRepository.findById(statusPending);
         if (orderStatusOptional.isEmpty())
