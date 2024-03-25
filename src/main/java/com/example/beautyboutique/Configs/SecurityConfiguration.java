@@ -49,7 +49,6 @@ public class SecurityConfiguration {
                                 .requestMatchers("/api/ship-detail/**").permitAll()
                                 .requestMatchers("/api/auth/login").permitAll()
                                 .requestMatchers("/api/users/deleteUser").hasAnyRole("ADMIN")
-                                .requestMatchers("/api/users/**").hasAnyRole("USER")
                                 .requestMatchers("/api/auth/register").permitAll()
                                 .requestMatchers("/api/auth/forgot").permitAll()
                                 .requestMatchers("/api/voucher/**").permitAll()
