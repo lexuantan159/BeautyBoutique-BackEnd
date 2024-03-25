@@ -45,7 +45,6 @@ public class UserController {
         }
     }
 
-
     @GetMapping("/getUser")
     public ResponseEntity<?> getUserById(HttpServletRequest request) {
         try {

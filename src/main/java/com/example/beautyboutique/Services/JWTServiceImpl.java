@@ -26,10 +26,11 @@ import java.util.function.Function;
 
 @Service
 public class JWTServiceImpl implements JWTService {
+
+    @Autowired
+    UserRepository userRepository;
     @Value("${jwt.secretKey}")
     private String secretKey;
-    @Autowired
-    private UserRepository userRepository;
 
     public JWTServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -39,9 +40,10 @@ public class JWTServiceImpl implements JWTService {
 
         return Jwts.builder().setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis()+604800000))
-                .signWith(getSiginKey(),SignatureAlgorithm.HS256)
-                .compact();   }
+                .setExpiration(new Date(System.currentTimeMillis() + 604800000))
+                .signWith(getSiginKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
 
     public String generateRefreshToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder().setClaims(extraClaims).setSubject(userDetails.getUsername())
@@ -49,6 +51,23 @@ public class JWTServiceImpl implements JWTService {
                 .setExpiration(new Date(System.currentTimeMillis() + 604800000))
                 .signWith(getSiginKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    @Override
+    public Integer getUserIdByToken(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+
+        if (token != null && token.startsWith("Bearer ")) {
+            // Remove "Bearer " prefix
+            token = token.substring(7);
+            String userName = extractClaim(token, Claims::getSubject);
+            Optional<User> userOptional = userRepository.findByUsername(userName);
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                return user.getId();
+            }
+        }
+        return -1;
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -74,44 +93,27 @@ public class JWTServiceImpl implements JWTService {
     }
 
     public boolean isTokenExpired(String token) {
-        return extractClaim(token,Claims::getExpiration).before(new Date());
+        return extractClaim(token, Claims::getExpiration).before(new Date());
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUserName(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
-    public Integer getUserIdByToken(HttpServletRequest request) {
-        String token = request.getHeader("Authorization");
 
+
+    public boolean isAdmin(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
         if (token != null && token.startsWith("Bearer ")) {
-            // Remove "Bearer " prefix
             token = token.substring(7);
-            System.out.println(token);
             String userName = extractClaim(token, Claims::getSubject);
-            System.out.println(userName);
             Optional<User> userOptional = userRepository.findByUsername(userName);
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
-                return user.getId();
-            }
-        }
-        return -1;
-    }
-
-
-    public boolean isAdmin(HttpServletRequest request){
-        String token = request.getHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7);
-            String userName = extractClaim(token, Claims::getSubject);
-            Optional<User> userOptional = userRepository.findByUsername(userName);
-                if (userOptional.isPresent()) {
-                    User user = userOptional.get();
-                    if(user.getRole().getRoleId() == 1 ){
-                        return  true;
-                    }
+                if (user.getRole().getRoleId() == 1) {
+                    return true;
                 }
+            }
         }
         return false;
     }

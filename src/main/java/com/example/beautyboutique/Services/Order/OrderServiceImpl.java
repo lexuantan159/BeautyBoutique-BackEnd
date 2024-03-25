@@ -1,8 +1,6 @@
 package com.example.beautyboutique.Services.Order;
-import com.example.beautyboutique.DTOs.Responses.Order.CancelOrder;
-import com.example.beautyboutique.DTOs.Responses.Order.CreatedOrder;
-import com.example.beautyboutique.DTOs.Responses.Order.PageOrder;
-import com.example.beautyboutique.DTOs.Responses.Order.UpdateOrder;
+
+import com.example.beautyboutique.DTOs.Responses.Order.*;
 import com.example.beautyboutique.DTOs.Responses.ResponseDTO;
 import com.example.beautyboutique.Models.*;
 import com.example.beautyboutique.Repositories.*;
@@ -123,6 +121,34 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+
+    @Override
+    public PageOrder getAllOrder(Integer pageNo, Integer pageSize, String sortBy, String sortDir) {
+        try {
+            Pageable pageable = PageRequest.of(pageNo, pageSize);
+            if (sortDir != "None") {
+                // Create Sorted instance
+                Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                        : Sort.by(sortBy).descending();
+                // create Pageable instance
+                pageable = PageRequest.of(pageNo, pageSize, sort);
+            }
+            Page<Orders> pageOrder = orderRepository.findByConditions(null, pageable);
+            Integer totalOrders = pageOrder.getTotalPages();
+            List<Orders> listOrders = pageOrder.getContent();
+            return new PageOrder(totalOrders, listOrders);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return new PageOrder();
+        }
+    }
+
+    @Override
+    public OrdersSummaryDTO summaryOrders() {
+        OrderSummary orderSummary = orderRepository.getOrdersSummary();
+        return new OrdersSummaryDTO(orderSummary.getCancelledOrders(), orderSummary.getDeliveredOrders(), orderSummary.getTotalPrice(), orderSummary.getTotalOrders());
+    }
+
     @Override
     public CancelOrder cancelOrder(Integer userId, Integer orderId) {
         Optional<User> userOptional = userRepository.findById(userId);
@@ -228,7 +254,7 @@ public class OrderServiceImpl implements OrderService {
 
             Orders orderDetail = orderDetailOptional.get();
             Integer statusCheck = orderDetail.getOrderStatus().getId();
-            if(statusCheck == 4 || statusCheck == 1) {
+            if (statusCheck == 4 || statusCheck == 1) {
                 return new ResponseDTO(true, "Can't Change Status Order!");
             }
             OrderStatus orderStatus = orderStatusOptional.get();

@@ -47,6 +47,37 @@ public class OrderController {
     @Autowired
     JWTServiceImpl jwtService;
 
+
+    @GetMapping(value = "/get-all-orders")
+    public ResponseEntity<?> getOrderHistories(@RequestParam(defaultValue = "1", required = false, name = "pageNo") Integer pageNo,
+                                               @RequestParam(defaultValue = "4", required = false, name = "pageSize") Integer pageSize,
+                                               @RequestParam(defaultValue = "createdAt", required = false, name = "sortBy") String sortBy,
+                                               @RequestParam(defaultValue = "None", required = false, name = "sortDir") String sortDir,
+                                               HttpServletRequest request) {
+        try {
+            PageOrder pageOrder = orderService.getAllOrder(pageNo - 1, pageSize, sortBy, sortDir);
+            Integer totalPages = pageOrder.getTotalPages();
+            List<Orders> orderHistories = pageOrder.getOrders();
+            Integer quantity = orderHistories.size();
+            return new ResponseEntity<>(new OrderHistories(0, "Get all orders successfully!", orderHistories, totalPages, quantity), HttpStatus.OK);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return new ResponseEntity<>(new ResponseMessage("Internal Server Error"), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping(value = "/get-summary-orders")
+    public ResponseEntity<?> getOrderHistories(HttpServletRequest request) {
+        try {
+            OrdersSummaryDTO ordersSummaryDTO = orderService.summaryOrders();
+            return new ResponseEntity<>(ordersSummaryDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return new ResponseEntity<>(new ResponseMessage("Internal Server Error"), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
     @GetMapping(value = "/order-histories")
     public ResponseEntity<?> getOrderHistories(@RequestParam(required = false, name = "userId") Integer userId,
                                                @RequestParam(defaultValue = "1", required = false, name = "pageNo") Integer pageNo,
