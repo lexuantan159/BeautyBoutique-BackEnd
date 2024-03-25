@@ -1,6 +1,7 @@
 package com.example.beautyboutique.Services;
 
 import com.example.beautyboutique.DTOs.*;
+import com.example.beautyboutique.Exception.ResourceNotFoundException;
 import com.example.beautyboutique.Exceptions.DataNotFoundException;
 import com.example.beautyboutique.Models.User;
 
@@ -10,4 +11,6 @@ public interface AuthenticationService {
     JwtAuthenticationResponse refreshToken(RefreshTokenRequest refreshTokenRequest);
     String resetpass(String username);
     String getEmail(String username);
+
+    User ChangePassWord(Integer id, String oldPassword, String newPassword) throws ResourceNotFoundException;
 }

@@ -1,6 +1,7 @@
 package com.example.beautyboutique.Services;
 
 import com.example.beautyboutique.DTOs.*;
+import com.example.beautyboutique.Exception.ResourceNotFoundException;
 import com.example.beautyboutique.Exceptions.DataNotFoundException;
 import com.example.beautyboutique.Models.Role;
 import com.example.beautyboutique.Models.User;
@@ -110,6 +111,28 @@ public class AuthenticationServiceImpl  implements AuthenticationService{
         User user = Opuser.orElseThrow(() -> new IllegalArgumentException("Người dùng không tồn tại"));
         String email= user.getEmail();
         return email;
+    }
+    @Override
+    public User ChangePassWord(Integer id, String oldPassword, String newPassword) throws ResourceNotFoundException {
+        try {
+            Optional<User> userOptional = userRepository.findById(id);
+            if (!userOptional.isPresent()) {
+                throw new ResourceNotFoundException("User with id " + id + " not found");
+            } else {
+                User user = userOptional.get();
+                if (passwordEncoder.matches(oldPassword, user.getPassword())) {
+                    user.setPassword(passwordEncoder.encode(newPassword));
+                    userRepository.save(user);
+                    return user;
+                } else {
+                    throw new IllegalArgumentException("Old password is incorrect");
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
