@@ -5,8 +5,9 @@ import com.example.beautyboutique.Exceptions.DataNotFoundException;
 import com.example.beautyboutique.Models.User;
 
 public interface AuthenticationService {
-    User signup(SignUpRequest signUpRequest)throws DataNotFoundException;
-    JwtAuthenticationResponse signin(SignInRequest signInRequest);
+    User signup(SignUpRequest signUpRequest);
+    JwtAuthenticationResponse signin(SignInRequest signInRequest) throws Exception;
     JwtAuthenticationResponse refreshToken(RefreshTokenRequest refreshTokenRequest);
-
+    String resetpass(String username);
+    String getEmail(String username);
 }

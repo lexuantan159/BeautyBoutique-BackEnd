@@ -6,6 +6,10 @@ import com.example.beautyboutique.Models.User;
 import com.example.beautyboutique.Services.JWTService;
 import com.example.beautyboutique.Services.User.UserService;
 import com.example.beautyboutique.Services.User.UserServiceImpl;
+import com.example.beautyboutique.DTOs.UserDto;
+import com.example.beautyboutique.Services.User.UserService;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import com.example.beautyboutique.Utils.ZaloAlgorithem.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +28,9 @@ import java.util.Optional;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
+
     @Autowired
-    UserServiceImpl userService;
+    private  UserService userService;
 
     @Autowired
     private JWTService jwtService;
@@ -64,16 +69,16 @@ public class UserController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<User> updateUser( HttpServletRequest request,@RequestBody UserRequest userUpdate) {
+    public ResponseEntity<User> updateUser(HttpServletRequest request, @RequestBody UserRequest userUpdate) {
         try {
             Integer userId = jwtService.getUserIdByToken(request);
             User updatedUser = userService.update(userId, userUpdate);
             return ResponseEntity.ok(updatedUser);
         } catch (DataIntegrityViolationException e) {
-            System.out.println("Eros"+e.getMessage());
+            System.out.println("Eros" + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
-            System.out.println("Eros"+e.getMessage());
+            System.out.println("Eros" + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -86,5 +91,6 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+
     }
 }

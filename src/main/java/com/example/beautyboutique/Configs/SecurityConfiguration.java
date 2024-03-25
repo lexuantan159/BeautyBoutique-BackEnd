@@ -17,9 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 
 @Configuration
 @EnableWebSecurity
@@ -49,6 +47,25 @@ public class SecurityConfiguration {
                                 .requestMatchers("/api/order/approve-order").hasAnyRole("ADMIN")
                                 .requestMatchers("/api/order/change-status").hasAnyRole("ADMIN")
                                 .requestMatchers("/api/ship-detail/**").permitAll()
+                                .requestMatchers("/api/auth/login").permitAll()
+                                .requestMatchers("/api/users/deleteUser").hasAnyRole("ADMIN")
+                                .requestMatchers("/api/users/**").hasAnyRole("USER")
+                                .requestMatchers("/api/auth/register").permitAll()
+                                .requestMatchers("/api/auth/forgot").permitAll()
+                                .requestMatchers("/api/voucher/**").permitAll()
+                                .requestMatchers("/api/product/**").permitAll()
+                                .requestMatchers("/api/category/**").permitAll()
+                                .requestMatchers("/api/product/**").permitAll()
+                                .requestMatchers("/api/category/**").permitAll()
+                                .requestMatchers("/api/users/**").permitAll()
+                                .requestMatchers("/api/blog/comment/**").permitAll()
+                                .requestMatchers("/api/product/feedback/**").permitAll()
+                                .requestMatchers("/api/voucher/create-voucher").hasRole("ADMIN")
+                                .requestMatchers("/api/voucher/delete-voucher").hasRole("ADMIN")
+                                .requestMatchers("/api/voucher/update-voucher").hasRole("ADMIN")
+                                .requestMatchers("/api/voucher/get-all-voucher").permitAll()
+                                .requestMatchers("/api/order/**").permitAll()
+                                .requestMatchers("/api/ship-detail/**").permitAll()
                                 .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider()).addFilterBefore(
@@ -76,7 +93,5 @@ public class SecurityConfiguration {
             throws Exception {
         return config.getAuthenticationManager();
     }
-
-
 
 }

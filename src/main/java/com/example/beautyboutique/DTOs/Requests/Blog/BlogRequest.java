@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 public class BlogRequest {
-    private Integer userId;
+
     private String title;
     private String content;
     private Integer likeCount;

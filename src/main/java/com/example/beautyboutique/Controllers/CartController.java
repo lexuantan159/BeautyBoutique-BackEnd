@@ -26,9 +26,9 @@ public class CartController {
 
     @Autowired
     CartServiceImpl cartService;
-
     @Autowired
     JWTServiceImpl jwtService;
+
 
     @GetMapping(value = "/get-cart")
     public ResponseEntity<?> getCart(@RequestParam(value = "pageNo", required = false, defaultValue = "0") Integer pageNo,
@@ -79,11 +79,14 @@ public class CartController {
     }
 
     @PostMapping(value = "/add-to-cart")
+
     public ResponseEntity<?> addToCart(@RequestParam(value = "productId") Integer productId,
+                                       @RequestParam(value = "quantity") Integer quantity,
                                        HttpServletRequest request) {
         try {
+
             Integer userId = jwtService.getUserIdByToken(request);
-            ResponseDTO addCart = cartService.addToCard(userId, productId);
+            ResponseDTO addCart = cartService.addToCard(userId, productId,quantity);
             if (addCart.getIsSuccess()) {
                 return new ResponseEntity<>(addCart.getMessage(), HttpStatus.OK);
             }

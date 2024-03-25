@@ -1,6 +1,7 @@
 package com.example.beautyboutique.Services;
 
 import com.example.beautyboutique.Exceptions.InvalidParamException;
+import com.example.beautyboutique.Models.Role;
 import com.example.beautyboutique.Models.User;
 import com.example.beautyboutique.Repositories.UserRepository;
 import io.jsonwebtoken.Claims;
@@ -25,6 +26,7 @@ import java.util.function.Function;
 
 @Service
 public class JWTServiceImpl implements JWTService {
+
     @Autowired
     UserRepository userRepository;
     @Value("${jwt.secretKey}")
@@ -38,7 +40,7 @@ public class JWTServiceImpl implements JWTService {
 
         return Jwts.builder().setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 2))
+                .setExpiration(new Date(System.currentTimeMillis() + 604800000))
                 .signWith(getSiginKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -99,5 +101,21 @@ public class JWTServiceImpl implements JWTService {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
+
+    public boolean isAdmin(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+            String userName = extractClaim(token, Claims::getSubject);
+            Optional<User> userOptional = userRepository.findByUsername(userName);
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                if (user.getRole().getRoleId() == 1) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
 }

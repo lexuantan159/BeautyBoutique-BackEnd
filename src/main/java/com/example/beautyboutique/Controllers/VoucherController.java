@@ -14,27 +14,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/voucher")
+@CrossOrigin("*")
 public class VoucherController {
     @Autowired
     VoucherServices voucherServices;
     @Autowired
     UserService userService;
-
     @Autowired
     JWTServiceImpl jwtService;
 
+
     @GetMapping(value = "/get-voucher")
-    public ResponseEntity<?> getVouchers(HttpServletRequest request) {
+
+    public ResponseEntity<?> getVouchers(HttpServletRequest requestToken) {
         try {
-            Integer userId = jwtService.getUserIdByToken(request);
+            Integer userId = jwtService.getUserIdByToken(requestToken);
+            if (userId == null) {
+                List<Voucher> listVouchers = voucherServices.getAllVouchers();
+                return new ResponseEntity<>(new AllVouchers(0, "Get vouchers successfully!", listVouchers), HttpStatus.OK);
+            }
             List<VoucherDetail> listVouchers = voucherServices.getListVouchersByUserId(userId);
             return new ResponseEntity<>(new VoucherOfUser(0, "Get vouchers of user successfully!", listVouchers), HttpStatus.OK);
         } catch (Exception e) {
@@ -44,9 +52,10 @@ public class VoucherController {
     }
 
     @PostMapping(value = "add-voucher")
-    public ResponseEntity<?> addVoucher(@RequestParam(value = "userId", required = false) Integer userId,
+    public ResponseEntity<?> addVoucher(HttpServletRequest requestToken,
                                         @RequestParam(value = "voucherId", required = false) Integer voucherId) {
         try {
+            Integer userId = jwtService.getUserIdByToken(requestToken);
             Boolean isAddVoucher = voucherServices.addVoucher(userId, voucherId);
             if (!isAddVoucher)
                 return new ResponseEntity<>("Add vouchers successfully!", HttpStatus.CREATED);
@@ -66,7 +75,7 @@ public class VoucherController {
             return new ResponseEntity<>("Retrieving information failed", HttpStatus.BAD_REQUEST);
         }
     }
-
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     @PostMapping(value = "/create-voucher", consumes = {
             MediaType.APPLICATION_JSON_VALUE,
             MediaType.APPLICATION_FORM_URLENCODED_VALUE
@@ -75,26 +84,36 @@ public class VoucherController {
     })
     @ResponseBody
     ResponseEntity<?> createVoucher(Voucher voucher) {
-
         try {
-
-            Voucher createdVoucher = voucherServices.createVoucher(voucher);
-            if (createdVoucher != null) {
-                return new ResponseEntity<>("Created a voucher successfully", HttpStatus.CREATED);
+            LocalDate startDate = voucher.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate endDate = voucher.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            if (startDate.isBefore(endDate)) {
+                if (endDate.minusDays(1).isAfter(startDate)) {
+                    Voucher createdVoucher = voucherServices.createVoucher(voucher);
+                    if (createdVoucher != null) {
+                        return new ResponseEntity<>("Created a voucher successfully", HttpStatus.CREATED);
+                    } else {
+                        return new ResponseEntity<>("Failed to create voucher", HttpStatus.BAD_REQUEST);
+                    }
+                } else {
+                    return new ResponseEntity<>("Start date and end date must be at least 1 day apart", HttpStatus.BAD_REQUEST);
+                }
             } else {
-                return new ResponseEntity<>("Failed to create comment", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("End date must be after start date", HttpStatus.BAD_REQUEST);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>("Internal server failed", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+
     @PostMapping(value = "/save-voucher-for-user")
     ResponseEntity<?> saveVoucher(@RequestParam(value = "voucherId") Integer voucherId,
-                                  @RequestParam(value = "userId") Integer userId) {
+                                  HttpServletRequest requestToken) {
 
         try {
+            Integer userId = jwtService.getUserIdByToken(requestToken);
             boolean isSave = voucherServices.getVoucherDetailByUserIdAndVoucherId(userId, voucherId);
             if (isSave) {
                 return new ResponseEntity<>("You have already saved this voucher", HttpStatus.OK);
@@ -144,6 +163,7 @@ public class VoucherController {
         }
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     @DeleteMapping(value = "/delete-voucher")
     public ResponseEntity<?> deleteComment(@RequestParam(value = "id") Integer id) {
         try {
@@ -156,6 +176,7 @@ public class VoucherController {
             }
             return new ResponseEntity<>("Delete voucher fail!", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
+            System.out.printf(e.getMessage());
             return new ResponseEntity<>("Internal server failed", HttpStatus.BAD_REQUEST);
         }
     }

@@ -13,7 +13,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Optional;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +27,7 @@ public class AuthenticationServiceImpl  implements AuthenticationService{
     private final JWTService jwtService;
 //    private final JavaMailSender mailSender;
     @Override
-    public User signup(SignUpRequest signUpRequest) throws DataNotFoundException {
+    public User signup(SignUpRequest signUpRequest) {
             String username =signUpRequest.getUsername();
             if(userRepository.existsByUsername(username)){
                 throw new DataIntegrityViolationException("username already exists");
@@ -35,22 +38,23 @@ public class AuthenticationServiceImpl  implements AuthenticationService{
             }
 
             User user = new User();
-            user.setFullName(signUpRequest.getFullName());
+            user.setFullName("");
             user.setUsername(username);
             user.setEmail(email);
-            user.setAddress(signUpRequest.getAddress());
+            user.setAddress("");
             user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
-            user.setDateOfBirth(signUpRequest.getDateOfBirth());
-            user.setFacebookAccountId(signUpRequest.getFacebookAccountId());
-            user.setGoogleAccountId(signUpRequest.getGoogleAccountId());
+            user.setDateOfBirth(new Date(System.currentTimeMillis()));
             Role role = new Role();
             role.setRoleId(2);
             role.setRoleName("USER");
             user.setRole(role);
             return userRepository.save(user);
     }
-    public JwtAuthenticationResponse signin(SignInRequest signInRequest){
+    public JwtAuthenticationResponse signin(SignInRequest signInRequest) throws Exception{
         String username =signInRequest.getUsername();
+        if(username.isEmpty()) {
+            throw new DataNotFoundException("INVALID User");
+        }
         if(!userRepository.existsByUsername(username)){
             throw new DataIntegrityViolationException("username does not exist");
         }
@@ -78,6 +82,36 @@ public class AuthenticationServiceImpl  implements AuthenticationService{
         }
         return null;
     }
+    public String resetpass(String username){
+        Optional<User> Opuser = userRepository.findByUsername(username);
+        User user = Opuser.orElseThrow(() -> new IllegalArgumentException("Người dùng không tồn tại"));
+        String email= user.getEmail();
+        if (email == null) {
+            throw new IllegalArgumentException("user không tồn tại");
+        }
+        String newPassword = generateRandomPassword();
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(encodedPassword);
+        userRepository.save(user);
+        return  newPassword;
+    }
+    private String generateRandomPassword() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 8; i++) {
+            int index = random.nextInt(characters.length());
+            sb.append(characters.charAt(index));
+        }
+        return sb.toString();
+    }
+    public String getEmail(String username) {
+        Optional<User> Opuser = userRepository.findByUsername(username);
+        User user = Opuser.orElseThrow(() -> new IllegalArgumentException("Người dùng không tồn tại"));
+        String email= user.getEmail();
+        return email;
+    }
+
 
 
 }

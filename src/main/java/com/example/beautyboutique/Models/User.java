@@ -44,22 +44,16 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "date_of_birth")
     private Date dateOfBirth;
 
-    @Column(name = "facebook_account_id")
-    private int facebookAccountId;
-
-    @Column(name = "google_account_id")
-    private int googleAccountId;
 
     @ManyToOne
     @JoinColumn(name = "role_id")
-    private  com.example.beautyboutique.Models.Role role;
+    private  Role role;
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
         authorityList.add(new SimpleGrantedAuthority("ROLE_"+getRole().getRoleName().toUpperCase()));
-        //authorityList.add(new SimpleGrantedAuthority("ADMIN"));
         return authorityList;
     }
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
