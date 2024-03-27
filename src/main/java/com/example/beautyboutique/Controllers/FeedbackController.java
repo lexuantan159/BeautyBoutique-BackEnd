@@ -127,4 +127,11 @@ public class FeedbackController {
         }
         return null;
     }
+    @GetMapping("/checkOrderAndDelivery")
+    public boolean isOrderedAndDelivered( @RequestParam("productId") Integer productId,HttpServletRequest requestToken) {
+        Integer userId = jwtService.getUserIdByToken(requestToken);
+        System.out.println(productId);
+        System.out.println(userId);
+        return feedbackServices.isOrderedAndDelivered(userId, productId);
+    }
 }
