@@ -1,6 +1,8 @@
 package com.example.beautyboutique.Services.Feedback;
 import com.example.beautyboutique.Models.Feedback;
+import com.example.beautyboutique.Models.Orders;
 import com.example.beautyboutique.Repositories.FeedbackRepository;
+import com.example.beautyboutique.Repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,8 @@ import java.util.Optional;
 public class FeedbackServices implements FeedbackService {
     @Autowired
     FeedbackRepository feedbackRepository;
+    @Autowired
+    OrderRepository orderRepository;
     @Override
     public List<Feedback> getAllFeedback() {
         try {
@@ -93,5 +97,10 @@ public class FeedbackServices implements FeedbackService {
             System.out.println(e.getMessage());
             return new ArrayList<>();
         }
+    }
+
+    @Override
+    public boolean isOrderedAndDelivered(Integer userId, Integer productId) {
+       return orderRepository.isOrderedAndDelivered(userId, productId);
     }
 }

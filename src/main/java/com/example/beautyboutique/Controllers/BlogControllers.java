@@ -88,14 +88,16 @@ public class BlogControllers {
     @DeleteMapping(value = "/delete-blog/")
     public ResponseEntity<?> deleteBlog(@RequestParam(value = "id") Integer id,HttpServletRequest requestToken) {
         try {
-            System.out.printf("token --------------" + requestToken);
+
             Integer userId = jwtService.getUserIdByToken(requestToken);
+            boolean isAdmin = jwtService.isAdmin(requestToken);
+
             if (id == null || id <= 0) {
                 return ResponseEntity.badRequest().body("Invalid blog ID");
             }
             BlogPost blog = blogServices.getABlogById(id);
             int ownerId = blog.getUser().getId();
-            if (userId == ownerId) {
+            if (userId == ownerId || isAdmin) {
                 boolean isDelete = blogServices.deleteBlog(id);
                 if (isDelete)
                     return new ResponseEntity<>("Delete blog successfully!", HttpStatus.OK);

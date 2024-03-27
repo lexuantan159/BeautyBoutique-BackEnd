@@ -11,4 +11,5 @@ public interface FeedbackService {
     Feedback updateFeedback(Integer id, Feedback updateFeedback);
     boolean deleteFeedback(Integer id);
     List<Feedback> getAllFeedbackByProductId(Integer productId);
+    boolean isOrderedAndDelivered(Integer userId , Integer productId);
 }

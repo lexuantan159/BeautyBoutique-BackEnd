@@ -1,4 +1,6 @@
 package com.example.beautyboutique.Services.Blog;
+import com.example.beautyboutique.Models.LikeEntity;
+import com.example.beautyboutique.Repositories.LikeRepository;
 import org.springframework.data.domain.Sort;
 import com.example.beautyboutique.Models.BlogImage;
 import com.example.beautyboutique.Models.BlogPost;
@@ -22,6 +24,8 @@ public class BlogServices implements  BlogService {
     BlogImageRepository blogImageRepository;
     @Autowired
     CommentRepository commentRepository;
+    @Autowired
+    LikeRepository likeRepository;
     @Override
     public List<BlogPost> getAllBlog() {
         try {
@@ -80,6 +84,10 @@ public class BlogServices implements  BlogService {
                 List<Comment> comments = blogPost.getComments();
                 if (comments != null && !comments.isEmpty()) {
                     commentRepository.deleteAll(comments);
+                }
+                List<LikeEntity> likes = blogPost.getLikeEntities();
+                if(likes != null && !likes.isEmpty()){
+                    likeRepository.deleteAll(likes);
                 }
                 blogRepository.deleteById(id);
                 System.out.println("BlogPost with id " + id + " and its associated images have been deleted.");
