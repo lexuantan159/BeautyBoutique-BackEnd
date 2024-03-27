@@ -79,7 +79,6 @@ public class VoucherController {
     @PostMapping(value = "/create-voucher", consumes = {
             MediaType.APPLICATION_JSON_VALUE,
             MediaType.APPLICATION_FORM_URLENCODED_VALUE
-
     }, produces = {MediaType.APPLICATION_JSON_VALUE
     })
     @ResponseBody

@@ -59,6 +59,7 @@ public class SecurityConfiguration {
                                 .requestMatchers("/api/category/**").permitAll()
                                 .requestMatchers("/api/users/**").permitAll()
                                 .requestMatchers("/api/blog/comment/**").permitAll()
+                                .requestMatchers("/api/blog/like/**").permitAll()
                                 .requestMatchers("/api/product/feedback/**").permitAll()
                                 .requestMatchers("/api/voucher/create-voucher").hasRole("ADMIN")
                                 .requestMatchers("/api/voucher/delete-voucher").hasRole("ADMIN")

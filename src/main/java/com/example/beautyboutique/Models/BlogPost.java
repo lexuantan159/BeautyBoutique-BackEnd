@@ -38,6 +38,8 @@ public class BlogPost {
     private List<BlogImage> images;
     @OneToMany(mappedBy = "blogPost", fetch = FetchType.EAGER)
     private List<Comment> comments;
+    @OneToMany(mappedBy = "blogPost", fetch = FetchType.EAGER)
+    private List<LikeEntity> likeEntities;
 
     @Column(name = "createDate", columnDefinition = "DATETIME", nullable = false, updatable = false)
     @CreationTimestamp
