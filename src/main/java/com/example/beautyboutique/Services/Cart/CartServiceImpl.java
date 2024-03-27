@@ -76,6 +76,7 @@ public class CartServiceImpl implements CartService {
             CartItem cartItem = cartItemOptional.get();
             if (quantity > 0) {
                 cartItem.setQuantity(quantity);
+                cartItem.setTotalPrice( cartItem.getProduct().getSalePrice().multiply(BigDecimal.valueOf(quantity)) );
                 cartItemRepository.save(cartItem);
                 return true;
             }

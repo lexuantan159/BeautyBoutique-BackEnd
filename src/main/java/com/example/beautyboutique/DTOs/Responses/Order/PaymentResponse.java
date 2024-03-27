@@ -14,7 +14,4 @@ public class PaymentResponse {
     private String paymentUrl;
     private String appTransId;
     private String zpTransToken;
-
-
-
 }

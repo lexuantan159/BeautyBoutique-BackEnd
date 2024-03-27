@@ -40,10 +40,10 @@ public class CartItem {
         this.totalPrice = totalPrice;
     }
 
-    @PostLoad
-    public void calculateTotalPrice() {
-        if (this.product != null && this.quantity != null) {
-            this.totalPrice = this.product.getSalePrice().multiply(new BigDecimal(this.quantity));
-        }
-    }
+//    @PostLoad
+//    public void calculateTotalPrice() {
+//        if (this.product != null && this.quantity != null) {
+//            this.totalPrice = this.product.getSalePrice().multiply(new BigDecimal(this.quantity));
+//        }
+//    }
 }

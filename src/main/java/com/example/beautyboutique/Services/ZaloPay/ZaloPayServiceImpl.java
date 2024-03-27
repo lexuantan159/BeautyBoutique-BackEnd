@@ -4,9 +4,7 @@ import com.example.beautyboutique.Configs.ZalopayConstant;
 import com.example.beautyboutique.DTOs.Requests.Payment.RefundRequestDTO;
 import com.example.beautyboutique.DTOs.Requests.Payment.RefundStatusRequestDTO;
 import com.example.beautyboutique.Models.*;
-import com.example.beautyboutique.Repositories.CartItemRepository;
-import com.example.beautyboutique.Repositories.ProductRepository;
-import com.example.beautyboutique.Repositories.UserRepository;
+import com.example.beautyboutique.Repositories.*;
 import com.example.beautyboutique.Utils.ZaloAlgorithem.HMACUtil;
 
 import org.apache.http.NameValuePair;
@@ -45,6 +43,11 @@ public class ZaloPayServiceImpl implements ZaloPayService {
     ProductRepository productRepository;
     @Autowired
     CartItemRepository cartItemRepository;
+
+    @Autowired
+    VoucherRepository voucherRepository;
+    @Autowired
+    VoucherDetailRepository voucherDetailRepository;
 
 
     private final Logger logger = Logger.getLogger(this.getClass().getName());
@@ -86,7 +89,7 @@ public class ZaloPayServiceImpl implements ZaloPayService {
 
 
     @Override
-    public Map<String, Object> createOrder(Integer userId, Integer[] cartItemIds) throws IOException, JSONException {
+    public Map<String, Object> createOrder(Integer userId, Integer[] cartItemIds, Integer voucherId) throws IOException, JSONException {
         Map<String, Object> resultMap = new HashMap<>();
 
 
@@ -106,8 +109,49 @@ public class ZaloPayServiceImpl implements ZaloPayService {
             String appUser = user.getUsername();
             String appTransId = getCurrentTimeString() + "_" + new Date().getTime();
 
-            BigDecimal totalPrice = sumPriceItem(cartItemIds);
-            System.out.println("totalPrice: " + totalPrice);
+
+            // Giả sử totalPrice đã được tính toán trước đó và là tiền đô
+            BigDecimal totalPriceUSD = sumPriceItem(cartItemIds);
+            System.out.println("totalPriceUSD: " + totalPriceUSD);
+            int exchangeRate = 24000;
+            BigDecimal totalPriceAfterDiscount = BigDecimal.ZERO;
+            if (voucherId != null) {
+                Optional<VoucherDetail> voucherDetailOptional = voucherDetailRepository.findByUserIdAndVoucherId(userId, voucherId);
+                if (voucherDetailOptional.isPresent()) {
+                    Optional<Voucher> voucherOptional = voucherRepository.findById(voucherId);
+                    if (voucherOptional.isPresent()) {
+                        Voucher voucher = voucherOptional.get();
+                        BigDecimal discount = BigDecimal.valueOf(voucher.getDiscount());
+                        BigDecimal discountAmount = totalPriceUSD.multiply(discount);
+                        // Kiểm tra giảm giá tối thiểu
+                        if (voucher.getMinimumOrder() != null && totalPriceUSD.compareTo(voucher.getMinimumOrder()) >= 0) {
+                            // Nếu tổng tiền của đơn hàng lớn hơn hoặc bằng giảm giá tối thiểu, áp dụng giảm giá
+                            // Kiểm tra xem có giới hạn giảm giá tối đa không
+                            BigDecimal maximDiscount = voucher.getMaximDiscount() != null ? voucher.getMaximDiscount() : BigDecimal.ZERO;
+                            if (discountAmount.compareTo(maximDiscount) > 0) {
+                                System.out.println("discountAmount: " + discountAmount);
+                                // Nếu số tiền giảm giá vượt quá giới hạn giảm giá tối đa, chỉ áp dụng giảm giá tối đa
+                                discountAmount = maximDiscount;
+                            }
+                        } else {
+                            // Nếu tổng tiền của đơn hàng nhỏ hơn giảm giá tối thiểu, không áp dụng giảm giá
+                            discountAmount = BigDecimal.ZERO;
+                        }
+                        // Tính toán giá trị giảm giá sau khi chuyển đổi về VND
+                        BigDecimal discountValueInVND = discountAmount.multiply(BigDecimal.valueOf(exchangeRate));
+                        // Trừ số tiền giảm giá từ tổng tiền của đơn hàng
+                        totalPriceAfterDiscount = totalPriceUSD.multiply(BigDecimal.valueOf(exchangeRate)).subtract(discountValueInVND);
+                        // Kiểm tra xem giá sau khi giảm giá có nhỏ hơn giá tối thiểu của đơn hàng không
+                        if (totalPriceAfterDiscount.compareTo(voucher.getMinimumOrder()) < 0) {
+                            totalPriceAfterDiscount = voucher.getMinimumOrder();
+                        }
+                    }
+                }
+            }
+
+            System.out.println("totalPriceAfterDiscount: " + totalPriceAfterDiscount);
+
+            BigDecimal totalPrice = voucherId == null ? totalPriceUSD.multiply(BigDecimal.valueOf(exchangeRate)) : totalPriceAfterDiscount;
             Map<String, Object> spa = new HashMap<String, Object>() {{
                 put("id", user.getId());
                 put("price", totalPrice);

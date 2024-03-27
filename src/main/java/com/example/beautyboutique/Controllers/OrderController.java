@@ -49,7 +49,7 @@ public class OrderController {
 
 
     @GetMapping(value = "/get-all-orders")
-    public ResponseEntity<?> getOrderHistories(@RequestParam(defaultValue = "1", required = false, name = "pageNo") Integer pageNo,
+    public ResponseEntity<?> getAllOrders(@RequestParam(defaultValue = "1", required = false, name = "pageNo") Integer pageNo,
                                                @RequestParam(defaultValue = "4", required = false, name = "pageSize") Integer pageSize,
                                                @RequestParam(defaultValue = "createdAt", required = false, name = "sortBy") String sortBy,
                                                @RequestParam(defaultValue = "None", required = false, name = "sortDir") String sortDir,
@@ -79,12 +79,13 @@ public class OrderController {
 
 
     @GetMapping(value = "/order-histories")
-    public ResponseEntity<?> getOrderHistories(@RequestParam(required = false, name = "userId") Integer userId,
-                                               @RequestParam(defaultValue = "1", required = false, name = "pageNo") Integer pageNo,
+    public ResponseEntity<?> getOrderHistories(@RequestParam(defaultValue = "1", required = false, name = "pageNo") Integer pageNo,
                                                @RequestParam(defaultValue = "4", required = false, name = "pageSize") Integer pageSize,
                                                @RequestParam(defaultValue = "createdAt", required = false, name = "sortBy") String sortBy,
-                                               @RequestParam(defaultValue = "None", required = false, name = "sortDir") String sortDir) {
+                                               @RequestParam(defaultValue = "None", required = false, name = "sortDir") String sortDir,
+                                               HttpServletRequest request) {
         try {
+            Integer userId = jwtService.getUserIdByToken(request);
             PageOrder pageOrder = orderService.getOrderHistory(userId, pageNo - 1, pageSize, sortBy, sortDir);
             Integer totalPages = pageOrder.getTotalPages();
             List<Orders> orderHistories = pageOrder.getOrders();
@@ -102,16 +103,16 @@ public class OrderController {
     }, produces =
             MediaType.APPLICATION_JSON_VALUE
     )
-    public @ResponseBody ResponseEntity<?> createPayment(CartItemId cartItemId, HttpServletRequest request) throws JSONException, IOException {
+    public @ResponseBody ResponseEntity<?> createPayment(CartItemId cartItemId, Integer voucherId, HttpServletRequest request) throws JSONException, IOException {
 
         try {
             Integer userId = jwtService.getUserIdByToken(request);
-            Map<String, Object> resultPayment = zaloPayService.createOrder(userId, cartItemId.getCartItemsId());
+            Map<String, Object> resultPayment = zaloPayService.createOrder(userId, cartItemId.getCartItemsId() , voucherId);
             if ((int) resultPayment.get("returncode") == 1) {
                 String paymentURL = (String) resultPayment.get("orderurl");
                 String zpTransToken = (String) resultPayment.get("zptranstoken");
                 String appTransId = (String) resultPayment.get("apptransid");
-                return new ResponseEntity<>(new PaymentResponse("Create payment successfully!", paymentURL, zpTransToken, appTransId), HttpStatus.CREATED);
+                return new ResponseEntity<>(new PaymentResponse("Create payment successfully!", paymentURL, appTransId, zpTransToken), HttpStatus.CREATED);
             }
             if ((int) resultPayment.get("returncode") == -4 && resultPayment.get("returnmessage") == "Not enough quantity!")
                 return new ResponseEntity<>(new ResponseMessage("Not enough quantity in stock!"), HttpStatus.BAD_REQUEST);
@@ -142,8 +143,6 @@ public class OrderController {
             Integer userId = jwtService.getUserIdByToken(request);
             if (zpTransToken != null) {
                 Map<String, Object> result = zaloPayService.statusOrder(zpTransToken);
-                System.out.println(result.get("returncode"));
-                System.out.println(result.get("returnmessage"));
                 if ((int) result.get("returncode") == 1 && result.get("returnmessage").toString().equals("Giao dịch thành công")) {
                     CreatedOrder createdOrder = orderService.createOrder(userId, shipDetailId, deliveryId, paymentId, voucherId, cartItemId.getCartItemsId());
                     if (createdOrder.getStatus())

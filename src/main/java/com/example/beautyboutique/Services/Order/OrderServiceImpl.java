@@ -41,6 +41,8 @@ public class OrderServiceImpl implements OrderService {
     ProductRepository productRepository;
     @Autowired
     VoucherRepository voucherRepository;
+    @Autowired
+    VoucherDetailRepository voucherDetailRepository;
 
 
     public BigDecimal sumPriceItem(Integer[] cartItemIds) {
@@ -77,21 +79,59 @@ public class OrderServiceImpl implements OrderService {
             OrderStatus orderStatus = statusRepository.findById(1)
                     .orElseThrow(() -> new ExpressionException("Status not found!"));
 
-            BigDecimal totalPrice = sumPriceItem(cartItemsId);
+
+            // Giả sử totalPrice đã được tính toán trước đó và là tiền đô
+            BigDecimal totalPriceUSD = sumPriceItem(cartItemsId);
+            int exchangeRate = 24000;
+            BigDecimal totalPriceAfterDiscount = BigDecimal.ZERO;
+            if (voucherId != null) {
+                Optional<VoucherDetail> voucherDetailOptional = voucherDetailRepository.findByUserIdAndVoucherId(userId, voucherId);
+                if (voucherDetailOptional.isPresent()) {
+                    Optional<Voucher> voucherOptional = voucherRepository.findById(voucherId);
+                    if (voucherOptional.isPresent()) {
+                        Voucher voucher = voucherOptional.get();
+                        BigDecimal discount = BigDecimal.valueOf(voucher.getDiscount());
+                        BigDecimal discountAmount = totalPriceUSD.multiply(discount);
+                        // Kiểm tra giảm giá tối thiểu
+                        if (voucher.getMinimumOrder() != null && totalPriceUSD.compareTo(voucher.getMinimumOrder()) >= 0) {
+                            // Nếu tổng tiền của đơn hàng lớn hơn hoặc bằng giảm giá tối thiểu, áp dụng giảm giá
+                            // Kiểm tra xem có giới hạn giảm giá tối đa không
+                            BigDecimal maximDiscount = voucher.getMaximDiscount() != null ? voucher.getMaximDiscount() : BigDecimal.ZERO;
+                            if (discountAmount.compareTo(maximDiscount) > 0) {
+                                System.out.println("discountAmount: " + discountAmount);
+                                // Nếu số tiền giảm giá vượt quá giới hạn giảm giá tối đa, chỉ áp dụng giảm giá tối đa
+                                discountAmount = maximDiscount;
+                            }
+                        } else {
+                            // Nếu tổng tiền của đơn hàng nhỏ hơn giảm giá tối thiểu, không áp dụng giảm giá
+                            discountAmount = BigDecimal.ZERO;
+                        }
+                        // Tính toán giá trị giảm giá sau khi chuyển đổi về VND
+                        BigDecimal discountValueInVND = discountAmount.multiply(BigDecimal.valueOf(exchangeRate));
+                        // Trừ số tiền giảm giá từ tổng tiền của đơn hàng
+                        totalPriceAfterDiscount = totalPriceUSD.multiply(BigDecimal.valueOf(exchangeRate)).subtract(discountValueInVND);
+                        // Kiểm tra xem giá sau khi giảm giá có nhỏ hơn giá tối thiểu của đơn hàng không
+                        if (totalPriceAfterDiscount.compareTo(voucher.getMinimumOrder()) < 0) {
+                            totalPriceAfterDiscount = voucher.getMinimumOrder();
+                        }
+                    }
+                }
+            }
+
+            System.out.println("totalPriceAfterDiscount: " + totalPriceAfterDiscount);
+            BigDecimal totalPrice = voucherId == null ? totalPriceUSD.multiply(BigDecimal.valueOf(exchangeRate)) : totalPriceAfterDiscount;
+            totalPrice = totalPrice.divide(BigDecimal.valueOf(exchangeRate));
+
             if (cartItemsId.length > 0 && totalPrice.compareTo(BigDecimal.ZERO) == 0) {
                 return new CreatedOrder(true, "Create Order fail, cart item not found!");
             }
             Orders order = new Orders(shipDetail, totalPrice, delivery, payment, orderStatus);
-            if (voucherId != null) {
-                Optional<Voucher> voucherOptional = voucherRepository.findById(voucherId);
-                Voucher voucher = voucherOptional.orElse(null);
-                order.setVoucher(voucher);
-            }
+
             if (!isEnoughQuantity(cartItemsId))
                 return new CreatedOrder(false, "Not enough quantity!");
             order = orderRepository.save(order);
             // handle create order details
-            return handleOrderDetailCreation(order, cartItemsId);
+            return handleOrderDetailCreation(order, cartItemsId, userId,voucherId);
 
         } catch (Exception e) {
             // Log the exception
@@ -172,7 +212,7 @@ public class OrderServiceImpl implements OrderService {
         if (statusId > 1)
             return new CancelOrder(false, "The order has been shipped and you cannot cancel the order!");
 
-        Integer idCancelOrderStatus = 4;
+        Integer idCancelOrderStatus = 6;
         Optional<OrderStatus> statusOptional = statusRepository.findById(idCancelOrderStatus);
         if (statusOptional.isEmpty())
             return new CancelOrder(false, "Status not found!");
@@ -303,7 +343,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional
-    public CreatedOrder handleOrderDetailCreation(Orders order, Integer[] cartItemsId) {
+    public CreatedOrder handleOrderDetailCreation(Orders order, Integer[] cartItemsId, Integer userId,Integer voucherId) {
         try {
             for (Integer cartItemId : cartItemsId) {
                 Optional<CartItem> cartItemOptional = cartItemRepository.findById(cartItemId);
@@ -329,6 +369,8 @@ public class OrderServiceImpl implements OrderService {
                 cartItemRepository.delete(cartItem);
             }
             // Lưu đơn hàng
+            Optional<VoucherDetail> voucherDetailOptional = voucherDetailRepository.findByUserIdAndVoucherId(userId, voucherId);
+            voucherDetailOptional.ifPresent(voucherDetailRepository::delete);
             orderRepository.save(order);
             return new CreatedOrder(true, "Create Order successfully!");
         } catch (Exception e) {

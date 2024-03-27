@@ -2,14 +2,18 @@ package com.example.beautyboutique.Controllers;
 
 import com.example.beautyboutique.DTOs.JwtAuthenticationResponse;
 import com.example.beautyboutique.DTOs.RefreshTokenRequest;
+import com.example.beautyboutique.DTOs.Responses.User.ChangePassDTO;
 import com.example.beautyboutique.DTOs.SignInRequest;
 import com.example.beautyboutique.DTOs.SignUpRequest;
-import com.example.beautyboutique.Exceptions.DataNotFoundException;
 import com.example.beautyboutique.Models.User;
 import com.example.beautyboutique.Services.AuthenticationService;
 import com.example.beautyboutique.Services.EmailService;
+import com.example.beautyboutique.Services.JWTServiceImpl;
 import com.example.beautyboutique.Services.User.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +27,9 @@ public class AuthController {
     private final UserService userService;
 
     private final EmailService mailService;
+
+    @Autowired
+    JWTServiceImpl jwtService;
     @PostMapping("/register")
     public ResponseEntity <?> signup(@RequestBody SignUpRequest signUpRequest){
         try {
@@ -68,6 +75,31 @@ public class AuthController {
         String newpass=   authenticationService.resetpass(username);
         String email = authenticationService.getEmail(username);
         return  ResponseEntity.ok(mailService.sendEmail(email,subject,newpass));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(HttpServletRequest request, @RequestBody ChangePassDTO changePassDTO) {
+        System.out.println("pass = " + changePassDTO.getOldPassword() + " " + changePassDTO.getNewPassword());
+        try {
+            Integer userId = jwtService.getUserIdByToken(request);
+            if (userId == null) {
+                return ResponseEntity.badRequest().body("Invalid token.");
+            }
+
+            User user = userService.findById(userId);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            User isChanged = authenticationService.ChangePassWord(userId, changePassDTO.getOldPassword(), changePassDTO.getNewPassword());
+            if (isChanged != null) {
+                return ResponseEntity.ok().build();
+            } else {
+                return ResponseEntity.badRequest().body("Failed to change password.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred.");
+        }
     }
 
 }
